@@ -11,7 +11,14 @@ class UserData {
   final Timestamp createdAt;
   final bool hasActiveConnection;
   final String? profileImageUrl;
-  final Timestamp? lastReadAnnouncementsTimestamp; // <-- ADDED FIELD
+  final Timestamp? lastReadAnnouncementsTimestamp;
+
+  // --- HYDRATION MODULE FIELDS ---
+  final int? hydrationGoal;
+  final String? wakeUpTime;
+  final String? bedTime; // NEW
+  final String? gender;  // NEW
+  final int? weight;     // NEW
 
   UserData({
     required this.uid,
@@ -24,11 +31,16 @@ class UserData {
     required this.createdAt,
     this.hasActiveConnection = false,
     this.profileImageUrl,
-    this.lastReadAnnouncementsTimestamp, // <-- ADDED TO CONSTRUCTOR
+    this.lastReadAnnouncementsTimestamp,
+    this.hydrationGoal,
+    this.wakeUpTime,
+    this.bedTime,
+    this.gender,
+    this.weight,
   });
 
   factory UserData.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>? ?? {}; // Null safety check
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>? ?? {};
     return UserData(
       uid: doc.id,
       name: data['name'] ?? '',
@@ -40,11 +52,15 @@ class UserData {
       createdAt: data['createdAt'] ?? Timestamp.now(),
       hasActiveConnection: data['hasActiveConnection'] ?? false,
       profileImageUrl: data['profileImageUrl'],
-      lastReadAnnouncementsTimestamp: data['lastReadAnnouncementsTimestamp'], // <-- READ FROM FIRESTORE
+      lastReadAnnouncementsTimestamp: data['lastReadAnnouncementsTimestamp'],
+      hydrationGoal: data['hydrationGoal'],
+      wakeUpTime: data['wakeUpTime'],
+      bedTime: data['bedTime'],
+      gender: data['gender'],
+      weight: data['weight'],
     );
   }
 
-  // Optional: Add copyWith method for easier updates if needed elsewhere
   UserData copyWith({
     String? uid,
     String? name,
@@ -57,6 +73,11 @@ class UserData {
     bool? hasActiveConnection,
     String? profileImageUrl,
     Timestamp? lastReadAnnouncementsTimestamp,
+    int? hydrationGoal,
+    String? wakeUpTime,
+    String? bedTime,
+    String? gender,
+    int? weight,
   }) {
     return UserData(
       uid: uid ?? this.uid,
@@ -70,7 +91,11 @@ class UserData {
       hasActiveConnection: hasActiveConnection ?? this.hasActiveConnection,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       lastReadAnnouncementsTimestamp: lastReadAnnouncementsTimestamp ?? this.lastReadAnnouncementsTimestamp,
+      hydrationGoal: hydrationGoal ?? this.hydrationGoal,
+      wakeUpTime: wakeUpTime ?? this.wakeUpTime,
+      bedTime: bedTime ?? this.bedTime,
+      gender: gender ?? this.gender,
+      weight: weight ?? this.weight,
     );
   }
-
 }

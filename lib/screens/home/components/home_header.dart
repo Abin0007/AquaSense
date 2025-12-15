@@ -3,24 +3,25 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 class HomeHeader extends StatelessWidget {
   final String userName;
+  final bool hasNewAnnouncements; // Added parameter
   final VoidCallback onNotificationTap;
 
   const HomeHeader({
     super.key,
     required this.userName,
+    required this.hasNewAnnouncements, // Required in constructor
     required this.onNotificationTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: const EdgeInsets.only(left: 24, right: 24, top: 40, bottom: 10), // Increased top padding for status bar
+      padding: const EdgeInsets.only(left: 24, right: 24, top: 40, bottom: 10),
       sliver: SliverToBoxAdapter(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // --- MODIFIED: Wrapped username in a styled container ---
             Expanded(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -31,7 +32,7 @@ class HomeHeader extends StatelessWidget {
                 child: Text(
                   userName,
                   style: const TextStyle(
-                    fontSize: 22, // Reduced font size
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -40,9 +41,29 @@ class HomeHeader extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 16), // Added spacing
+            const SizedBox(width: 16),
             IconButton(
-              icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 30),
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.notifications_outlined, color: Colors.white, size: 30),
+                  if (hasNewAnnouncements)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                        ),
+                      ).animate(onPlay: (c) => c.repeat(reverse: true))
+                          .scaleXY(end: 1.2, duration: 600.ms)
+                          .fade(),
+                    ),
+                ],
+              ),
               onPressed: onNotificationTap,
             ),
           ],
