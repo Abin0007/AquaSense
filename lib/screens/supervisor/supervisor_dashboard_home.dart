@@ -19,6 +19,11 @@ import 'package:rxdart/rxdart.dart'; // Import rxdart for combining streams
 
 import 'package:aquasense/screens/home/components/quick_action_card.dart';
 
+// --- NEW IoT IMPORTS ---
+import 'package:aquasense/models/pipeline_node_model.dart';
+import 'package:aquasense/services/iot_service.dart';
+import 'package:aquasense/screens/supervisor/iot/pipeline_health_screen.dart';
+
 // This widget now represents ONLY the content of the Supervisor's "Home" tab
 class SupervisorDashboardHome extends StatefulWidget {
   const SupervisorDashboardHome({super.key});
@@ -111,7 +116,6 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
           timestampChanged = true; // Consider it a change to trigger setup
           _setupNewAnnouncementsStream();
         }
-
 
         // Trigger UI rebuild only if core data changed
         if (needsRebuildForData) {
@@ -321,6 +325,11 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
               children: [
                 const _SectionHeader(title: 'Live Tank Status', topPadding: 16), // Reduced top padding
                 _buildWaterTankDisplay(supervisorData.wardId),
+
+                // --- NEW IOT PIPELINE HEALTH SECTION ---
+                const _SectionHeader(title: 'Pipeline Health (IoT)'),
+                _buildPipelineHealthCard(supervisorData.wardId),
+
                 const _SectionHeader(title: 'Quick Actions'),
                 _buildQuickActionsGrid(supervisorData), // Pass the data
               ],
@@ -379,6 +388,77 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
               waterLevel: tank.level,
               tankName: tank.tankName,
             ),
+          );
+        },
+      ),
+    );
+  }
+
+  // --- NEW PIPELINE HEALTH CARD ---
+  Widget _buildPipelineHealthCard(String supervisorWardId) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+      child: StreamBuilder<PipelineNode?>(
+        stream: IoTService().streamWardPipelineData(supervisorWardId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Colors.cyanAccent));
+          }
+
+          // Fallback if no sensor is assigned to this ward yet
+          if (!snapshot.hasData || snapshot.data == null) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(10),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withAlpha(20)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.sensors_off, color: Colors.grey),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Text("No pipeline sensors deployed in your ward yet.", style: TextStyle(color: Colors.white70)),
+                  )
+                ],
+              ),
+            );
+          }
+
+          final node = snapshot.data!;
+          final isLeaking = node.status == 'Leak Detected';
+
+          return GestureDetector(
+            onTap: () => Navigator.push(
+                context,
+                // Using SlideFadeRoute to match your existing transition animations
+                SlideFadeRoute(page: PipelineHealthScreen(wardId: supervisorWardId))
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isLeaking ? Colors.red.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: isLeaking ? Colors.redAccent : Colors.transparent),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.water_drop, color: isLeaking ? Colors.redAccent : Colors.cyan),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Ward Pipeline Status", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        Text(node.status, style: TextStyle(color: isLeaking ? Colors.redAccent : Colors.cyanAccent)),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                ],
+              ),
+            ).animate().fadeIn().scaleXY(begin: 0.95),
           );
         },
       ),

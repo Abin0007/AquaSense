@@ -9,6 +9,8 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+// --- NEW IOT IMPORT ---
+import 'package:aquasense/screens/admin/iot/infrastructure_reports_screen.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -56,7 +58,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
       if (mounted) setState(() => _complaintCount = 0);
     });
 
-
     // Connection Request Count (Optional, but useful)
     FirebaseFirestore.instance
         .collection('connection_requests')
@@ -70,7 +71,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
       if (mounted) setState(() => _connectionRequestCount = 0);
     });
   }
-
 
   // Helper function to build STATISTIC cards
   Widget _buildStatCard({
@@ -169,7 +169,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-
   Future<void> _logout(BuildContext context) async {
     final navigator = Navigator.of(context); // Capture navigator first
     final authService = AuthService();
@@ -253,7 +252,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 );
               },
             ),
-            // Add more cards here if needed
+
+            // --- NEW: Infrastructure Reports Card ---
+            _buildActionCard(
+              title: 'Infrastructure Reports',
+              icon: Icons.analytics_outlined,
+              color: Colors.amberAccent,
+              onTap: () {
+                Navigator.of(context).push(
+                    SlideFadeRoute(page: const InfrastructureReportsScreen())
+                );
+              },
+            ),
 
           ].animate(interval: 100.ms).fadeIn().scale(delay: 100.ms),
         ),

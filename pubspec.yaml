@@ -63,6 +63,9 @@ dependencies:
   # ✅ Machine Learning
   ml_algo: ^16.18.0
 
+  # Supabase
+  supabase_flutter: ^2.3.6
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
