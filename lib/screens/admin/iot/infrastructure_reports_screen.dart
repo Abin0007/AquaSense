@@ -9,19 +9,21 @@ class InfrastructureReportsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0F2027), // Matching app theme
       appBar: AppBar(
-        title: const Text('Infrastructure Leak Reports'),
+        title: const Text('Infrastructure Leak Reports', style: TextStyle(color: Colors.white)),
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFF152D4E), // Matching admin app bar
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: StreamBuilder<List<LeakLog>>(
         stream: IoTService().streamSystemActiveLeaks(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: Colors.cyanAccent));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No incidents reported. System is healthy."));
+            return const Center(child: Text("No incidents reported. System is healthy.", style: TextStyle(color: Colors.white70)));
           }
 
           final logs = snapshot.data!;
@@ -31,12 +33,25 @@ class InfrastructureReportsScreen extends StatelessWidget {
             itemCount: logs.length,
             itemBuilder: (context, index) {
               final log = logs[index];
-              final isActive = log.status == 'Active';
+              // Using the new detailed statuses
+              final isActive = log.status != 'Resolved';
+
+              // Calculate Duration
+              final duration = log.resolvedAt != null
+                  ? log.resolvedAt!.difference(log.startTime)
+                  : null;
+
+              final durationText = duration != null
+                  ? "${duration.inHours}h ${duration.inMinutes.remainder(60)}m to resolve"
+                  : "Ongoing...";
 
               return Card(
                 color: Colors.white.withOpacity(0.05),
                 margin: const EdgeInsets.only(bottom: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -45,24 +60,46 @@ class InfrastructureReportsScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Ward ID: ${log.wardId}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text('Ward ID: ${log.wardId}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
                           Chip(
-                            label: Text(log.status),
-                            backgroundColor: isActive ? Colors.redAccent.withOpacity(0.2) : Colors.green.withOpacity(0.2),
-                            side: BorderSide(color: isActive ? Colors.redAccent : Colors.green),
+                            label: Text(
+                                log.status.replaceAll('_', ' '),
+                                style: TextStyle(
+                                    color: isActive ? Colors.redAccent : Colors.greenAccent,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold
+                                )
+                            ),
+                            backgroundColor: isActive ? Colors.redAccent.withOpacity(0.1) : Colors.greenAccent.withOpacity(0.1),
+                            side: BorderSide(color: isActive ? Colors.redAccent : Colors.greenAccent),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      Text("Started: ${DateFormat('MMM dd, yyyy - hh:mm a').format(log.startTime)}", style: const TextStyle(color: Colors.grey)),
-                      if (!isActive && log.resolvedTime != null)
-                        Text("Resolved: ${DateFormat('MMM dd, yyyy - hh:mm a').format(log.resolvedTime!)}", style: const TextStyle(color: Colors.grey)),
+                      Text("Started: ${DateFormat('MMM dd, yyyy - hh:mm a').format(log.startTime)}", style: const TextStyle(color: Colors.white54)),
+
+                      // Changed resolvedTime to resolvedAt
+                      if (!isActive && log.resolvedAt != null)
+                        Text("Resolved: ${DateFormat('MMM dd, yyyy - hh:mm a').format(log.resolvedAt!)}", style: const TextStyle(color: Colors.white54)),
+
                       const SizedBox(height: 12),
+
+                      // New Duration display
                       Row(
                         children: [
-                          const Icon(Icons.water_drop, color: Colors.cyan, size: 16),
+                          const Icon(Icons.timer_outlined, color: Colors.orangeAccent, size: 16),
                           const SizedBox(width: 8),
-                          Text("Est. Water Lost: ${log.estimatedWaterLost} Liters", style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text("Resolution Time: $durationText", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orangeAccent, fontSize: 13)),
+                        ],
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      Row(
+                        children: [
+                          const Icon(Icons.water_drop, color: Colors.cyanAccent, size: 16),
+                          const SizedBox(width: 8),
+                          Text("Est. Water Lost: ${log.estimatedWaterLost} Liters", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.cyanAccent, fontSize: 13)),
                         ],
                       )
                     ],

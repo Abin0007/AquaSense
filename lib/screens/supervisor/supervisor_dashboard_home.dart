@@ -136,7 +136,7 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
     });
   }
 
-  // --- MODIFIED: Setup stream to combine global and ward announcements ---
+  // --- Setup stream to combine global and ward announcements ---
   void _setupNewAnnouncementsStream() {
     _announcementsSubscription?.cancel(); // Cancel previous subscription
     _hasNewAnnouncements = false; // Reset flag
@@ -198,8 +198,6 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
       }
     });
   }
-  // --- END MODIFICATION ---
-
 
   void _showWaterLevelAlert(BuildContext context, {
     required String title,
@@ -326,7 +324,7 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
                 const _SectionHeader(title: 'Live Tank Status', topPadding: 16), // Reduced top padding
                 _buildWaterTankDisplay(supervisorData.wardId),
 
-                // --- NEW IOT PIPELINE HEALTH SECTION ---
+                // --- PIPELINE HEALTH SECTION ---
                 const _SectionHeader(title: 'Pipeline Health (IoT)'),
                 _buildPipelineHealthCard(supervisorData.wardId),
 
@@ -341,7 +339,6 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
   }
 
   Widget _buildWaterTankDisplay(String supervisorWardId) {
-    // --- No changes needed here ---
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8), // Adjusted vertical padding
       child: StreamBuilder<DocumentSnapshot>(
@@ -370,7 +367,7 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
           }
           final tank = WaterTank.fromFirestore(snapshot.data!);
 
-          // Alert logic remains the same
+          // Alert logic
           if (tank.level <= 15 && !_lowLevelAlertShown) {
             _showWaterLevelAlert( context, title: "Critical Low Level!", message: "Water level is at ${tank.level}%. Risk of motor damage from dry running. Immediate action required.", icon: Icons.error_outline, color: Colors.redAccent, );
             _lowLevelAlertShown = true; _highLevelAlertShown = false;
@@ -394,7 +391,7 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
     );
   }
 
-  // --- NEW PIPELINE HEALTH CARD ---
+  // --- UPDATED PIPELINE HEALTH CARD (DYNAMIC WARNING) ---
   Widget _buildPipelineHealthCard(String supervisorWardId) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
@@ -427,38 +424,75 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
           }
 
           final node = snapshot.data!;
-          final isLeaking = node.status == 'Leak Detected';
+          // NEW LEAK LOGIC: Auto-detects leak if Flow In is significantly greater than Flow Out
+          final isLeaking = node.status == 'Leak Detected' || (node.flowRateIn - node.flowRateOut) > 0.5;
 
           return GestureDetector(
-            onTap: () => Navigator.push(
-                context,
-                // Using SlideFadeRoute to match your existing transition animations
-                SlideFadeRoute(page: PipelineHealthScreen(wardId: supervisorWardId))
-            ),
-            child: Container(
+            onTap: () => Navigator.push(context, SlideFadeRoute(page: PipelineHealthScreen(wardId: supervisorWardId))),
+            child: isLeaking
+                ? Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withOpacity(0.9), // Solid red alert
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [BoxShadow(color: Colors.redAccent.withOpacity(0.4), blurRadius: 15, spreadRadius: 2)],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 32)
+                          .animate(onPlay: (c) => c.repeat()).fadeOut(duration: 500.ms).fadeIn(duration: 500.ms),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text("CRITICAL LEAK DETECTED", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text("Pipeline integrity failure in your ward. Variance: ${(node.flowRateIn - node.flowRateOut).toStringAsFixed(1)} L/min.", style: const TextStyle(color: Colors.white, fontSize: 13)),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(8)),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text("TAP TO INITIATE EMERGENCY PROTOCOL", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward, color: Colors.white, size: 14),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ).animate().fadeIn().slideY(begin: 0.1)
+            // Normal State Card
+                : Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isLeaking ? Colors.red.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+                color: Colors.white.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: isLeaking ? Colors.redAccent : Colors.transparent),
+                border: Border.all(color: Colors.transparent),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.water_drop, color: isLeaking ? Colors.redAccent : Colors.cyan),
+                  const Icon(Icons.check_circle, color: Colors.greenAccent),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text("Ward Pipeline Status", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                        Text(node.status, style: TextStyle(color: isLeaking ? Colors.redAccent : Colors.cyanAccent)),
+                      children: const [
+                        Text("Ward Pipeline Status", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        Text("System Normal", style: TextStyle(color: Colors.greenAccent)),
                       ],
                     ),
                   ),
                   const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
                 ],
               ),
-            ).animate().fadeIn().scaleXY(begin: 0.95),
+            ).animate().fadeIn(),
           );
         },
       ),
@@ -467,7 +501,6 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
 
   // Extracted Grid logic
   Widget _buildQuickActionsGrid(UserData supervisorData) {
-    // --- No changes needed here ---
     final List<Widget> gridItems = [
       QuickActionCard(
         title: 'Ward Members',
@@ -523,7 +556,6 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
       ),
     );
   }
-
 }
 
 // --- Reusable Section Header ---

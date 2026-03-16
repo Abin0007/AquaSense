@@ -5,8 +5,14 @@ class PipelineNode {
   final String wardId;
   final double flowRateIn;
   final double flowRateOut;
-  final String status; // "Normal", "Leak Detected", "Disconnected"
+  final String status;
   final DateTime lastUpdated;
+
+  // --- NEW: Sensor Location Data ---
+  final GeoPoint? sensor1Location;
+  final String sensor1Address;
+  final GeoPoint? sensor2Location;
+  final String sensor2Address;
 
   PipelineNode({
     required this.nodeId,
@@ -15,6 +21,10 @@ class PipelineNode {
     required this.flowRateOut,
     required this.status,
     required this.lastUpdated,
+    this.sensor1Location,
+    this.sensor1Address = 'Main Ingress Point',
+    this.sensor2Location,
+    this.sensor2Address = 'Egress Alpha',
   });
 
   factory PipelineNode.fromMap(Map<String, dynamic> map, String id) {
@@ -25,6 +35,10 @@ class PipelineNode {
       flowRateOut: (map['flowRateOut'] ?? 0).toDouble(),
       status: map['status'] ?? 'Disconnected',
       lastUpdated: (map['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      sensor1Location: map['sensor1Location'] as GeoPoint?,
+      sensor1Address: map['sensor1Address'] ?? 'Main Ingress Point',
+      sensor2Location: map['sensor2Location'] as GeoPoint?,
+      sensor2Address: map['sensor2Address'] ?? 'Egress Alpha',
     );
   }
 }
