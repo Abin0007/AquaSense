@@ -13,7 +13,6 @@ import '../../../services/iot_service.dart';
 import '../../../services/storage_service.dart';
 import '../../../utils/page_transition.dart';
 import 'pipeline_history_screen.dart';
-// --- NEW IMPORT FOR MANAGING SENSORS ---
 import 'manage_sensors_screen.dart';
 
 const Color _dashStart = Color(0xFF0F2027);
@@ -58,7 +57,6 @@ class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
                       'Live Pipeline Health',
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white, letterSpacing: 0.5),
                     ),
-                    // --- NEW: Add Manage Sensors Button Here ---
                     _buildIconButton(
                         Icons.settings_outlined,
                             () => Navigator.push(context, SlideFadeRoute(page: ManageSensorsScreen(wardId: widget.wardId)))
@@ -332,11 +330,19 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
     return GeoPoint(position.latitude, position.longitude);
   }
 
-  // --- Helper method to launch Map for Sensors ---
+  // --- CORRECTED: Helper method to launch Map for Sensors ---
   Future<void> _launchMap(GeoPoint loc) async {
-    final url = 'http://googleusercontent.com/maps.google.com/maps?q=${loc.latitude},${loc.longitude}';
+    // Official Google Maps URL schema
+    final url = 'https://www.google.com/maps/search/?api=1&query=${loc.latitude},${loc.longitude}';
+
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open Google Maps.', style: TextStyle(color: Colors.white)), backgroundColor: Colors.redAccent)
+        );
+      }
     }
   }
 

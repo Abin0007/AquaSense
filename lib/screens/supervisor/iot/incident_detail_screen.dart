@@ -8,10 +8,15 @@ class IncidentDetailScreen extends StatelessWidget {
 
   const IncidentDetailScreen({Key? key, required this.log}) : super(key: key);
 
+  // --- CORRECTED: Reliable Google Maps URL ---
   void _launchMap(double lat, double lng) async {
+    // Official universal Google Maps search URL
     final url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint("Could not launch maps");
     }
   }
 
@@ -130,7 +135,7 @@ class IncidentDetailScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: onTapLoc,
-                      child: Row(children: [const Icon(Icons.map, color: Colors.cyanAccent, size: 14), const SizedBox(width: 4), const Text("View GPS Coordinates", style: TextStyle(color: Colors.cyanAccent, fontSize: 12, decoration: TextDecoration.underline))]),
+                      child: Row(children: [const Icon(Icons.map, color: Colors.cyanAccent, size: 14), const SizedBox(width: 4), const Text("View GPS Coordinates", style: TextStyle(color: Colors.cyanAccent, fontSize: 12, decoration: TextDecoration.underline, decorationColor: Colors.cyanAccent))]),
                     )
                   ]
                 ],

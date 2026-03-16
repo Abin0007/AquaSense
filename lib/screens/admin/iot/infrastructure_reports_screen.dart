@@ -33,8 +33,10 @@ class InfrastructureReportsScreen extends StatelessWidget {
             itemCount: logs.length,
             itemBuilder: (context, index) {
               final log = logs[index];
-              // Using the new detailed statuses
-              final isActive = log.status != 'Resolved';
+
+              // --- CORRECTED BADGE LOGIC ---
+              // It is ongoing (Red) UNLESS it is fully 'Resolved' (Green)
+              final isOngoing = log.status != 'Resolved';
 
               // Calculate Duration
               final duration = log.resolvedAt != null
@@ -65,26 +67,25 @@ class InfrastructureReportsScreen extends StatelessWidget {
                             label: Text(
                                 log.status.replaceAll('_', ' '),
                                 style: TextStyle(
-                                    color: isActive ? Colors.redAccent : Colors.greenAccent,
+                                    color: isOngoing ? Colors.redAccent : Colors.greenAccent,
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold
                                 )
                             ),
-                            backgroundColor: isActive ? Colors.redAccent.withOpacity(0.1) : Colors.greenAccent.withOpacity(0.1),
-                            side: BorderSide(color: isActive ? Colors.redAccent : Colors.greenAccent),
+                            backgroundColor: isOngoing ? Colors.redAccent.withOpacity(0.1) : Colors.greenAccent.withOpacity(0.1),
+                            side: BorderSide(color: isOngoing ? Colors.redAccent : Colors.greenAccent),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
                       Text("Started: ${DateFormat('MMM dd, yyyy - hh:mm a').format(log.startTime)}", style: const TextStyle(color: Colors.white54)),
 
-                      // Changed resolvedTime to resolvedAt
-                      if (!isActive && log.resolvedAt != null)
+                      if (!isOngoing && log.resolvedAt != null)
                         Text("Resolved: ${DateFormat('MMM dd, yyyy - hh:mm a').format(log.resolvedAt!)}", style: const TextStyle(color: Colors.white54)),
 
                       const SizedBox(height: 12),
 
-                      // New Duration display
+                      // Duration display
                       Row(
                         children: [
                           const Icon(Icons.timer_outlined, color: Colors.orangeAccent, size: 16),

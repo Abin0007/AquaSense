@@ -31,9 +31,11 @@ class PipelineNode {
     return PipelineNode(
       nodeId: id,
       wardId: map['wardId'] ?? '',
-      flowRateIn: (map['flowRateIn'] ?? 0).toDouble(),
-      flowRateOut: (map['flowRateOut'] ?? 0).toDouble(),
+      // UPDATED: Checks for both your old dummy key ('flowRateIn') and the new ESP32 key ('flowInRate')
+      flowRateIn: (map['flowInRate'] ?? map['flowRateIn'] ?? 0).toDouble(),
+      flowRateOut: (map['flowOutRate'] ?? map['flowRateOut'] ?? 0).toDouble(),
       status: map['status'] ?? 'Disconnected',
+      // UPDATED: If the ESP32 doesn't send a timestamp, use the exact moment the stream is received
       lastUpdated: (map['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
       sensor1Location: map['sensor1Location'] as GeoPoint?,
       sensor1Address: map['sensor1Address'] ?? 'Main Ingress Point',

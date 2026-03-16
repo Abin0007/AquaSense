@@ -14,13 +14,18 @@ class WaterTank {
   });
 
   factory WaterTank.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    // Safety check: Provide an empty map if doc.data() is null to prevent crashes
+    Map<String, dynamic> data = (doc.data() as Map<String, dynamic>?) ?? {};
+
     return WaterTank(
       id: doc.id,
       tankName: data['tankName'] ?? 'Unnamed Tank',
-      level: (data['level'] ?? 0).toInt(),
+      // SAFELY parse level: ensures it doesn't crash even if ESP32 sends a double or string format
+      level: (data['level'] is num)
+          ? (data['level'] as num).toInt()
+          : int.tryParse(data['level']?.toString() ?? '0') ?? 0,
+      // If the ESP32 doesn't send a timestamp, use the exact moment the stream is received
       lastUpdated: data['lastUpdated'] ?? Timestamp.now(),
     );
   }
 }
-
