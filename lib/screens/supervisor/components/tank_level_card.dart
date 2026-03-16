@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 class TankLevelCard extends StatelessWidget {
   final WaterTank tank;
-  final VoidCallback onUpdate; // Callback for update action
+  final VoidCallback onUpdate; // Callback for update action preserved
 
   const TankLevelCard({super.key, required this.tank, required this.onUpdate});
 
@@ -33,14 +33,15 @@ class TankLevelCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                tank.tankName,
+                // Clean up the name in case it uses the document ID with %20
+                tank.tankName.replaceAll('%20', ' '),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              // UPDATE BUTTON
+              // PRESERVED: MANUAL UPDATE BUTTON
               OutlinedButton.icon(
                 onPressed: onUpdate,
                 icon: const Icon(Icons.edit, size: 16),
@@ -55,30 +56,50 @@ class TankLevelCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Last updated: ${DateFormat('d MMM, h:mm a').format(tank.lastUpdated.toDate())}',
+            // Added seconds to the timestamp to clearly show the 2-second live updates
+            'Last updated: ${DateFormat('d MMM, h:mm:ss a').format(tank.lastUpdated.toDate())}',
             style: const TextStyle(color: Colors.white70, fontSize: 12),
           ),
           const SizedBox(height: 20),
+
+          // SMOOTHLY ANIMATED PROGRESS BAR FOR LIVE ESP32 UPDATES
           Row(
             children: [
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: tank.level / 100.0,
-                    minHeight: 12,
-                    backgroundColor: Colors.grey.withAlpha(50),
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: tank.level / 100.0),
+                    duration: const Duration(milliseconds: 1500),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, child) {
+                      return LinearProgressIndicator(
+                        value: value,
+                        minHeight: 12,
+                        backgroundColor: Colors.grey.withAlpha(50),
+                        valueColor: AlwaysStoppedAnimation<Color>(color),
+                      );
+                    },
                   ),
                 ),
               ),
               const SizedBox(width: 16),
-              Text(
-                '${tank.level}%',
-                style: TextStyle(
-                  color: color,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+              SizedBox(
+                width: 55, // Fixed width prevents the layout from jittering as numbers change
+                child: TweenAnimationBuilder<int>(
+                  tween: IntTween(begin: 0, end: tank.level),
+                  duration: const Duration(milliseconds: 1500),
+                  builder: (context, value, child) {
+                    return Text(
+                      '$value%',
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

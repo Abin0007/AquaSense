@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/pipeline_node_model.dart';
 import '../models/leak_log_model.dart';
+import '../models/water_tank_model.dart'; // --- NEW: Added Water Tank Model import
 
 class IoTService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -18,6 +19,22 @@ class IoTService {
     });
   }
 
+  // --- NEW: Stream live water tank level ---
+  Stream<WaterTank> streamTankLevel(String tankId) {
+    return _db.collection('water_tanks').doc(tankId).snapshots().map((snapshot) {
+      if (snapshot.exists && snapshot.data() != null) {
+        return WaterTank.fromFirestore(snapshot);
+      }
+      // Safe fallback if the tank hasn't sent data yet to prevent UI crashes
+      return WaterTank(
+        id: tankId,
+        tankName: 'Unknown Tank',
+        level: 0,
+        lastUpdated: Timestamp.now(),
+      );
+    });
+  }
+
   // Stream active leaks for the Admin Dashboard
   Stream<List<LeakLog>> streamSystemActiveLeaks() {
     return _db
@@ -29,7 +46,7 @@ class IoTService {
         .toList());
   }
 
-  // --- NEW METHODS FOR EMERGENCY WORKFLOW ---
+  // --- EXISTING METHODS FOR EMERGENCY WORKFLOW ---
 
   // 1. Stream the current ACTIVE leak log for a ward (if any)
   Stream<LeakLog?> streamActiveLeakLog(String wardId) {

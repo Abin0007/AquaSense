@@ -36,7 +36,7 @@ class _TankLevelsScreenState extends State<TankLevelsScreen> {
     }
   }
 
-  // Method to show the update dialog
+  // Method to show the update dialog (Preserved for manual backup)
   void _showUpdateDialog(BuildContext context, WaterTank tank) {
     final TextEditingController levelController = TextEditingController(text: tank.level.toString());
     showDialog(
@@ -44,7 +44,7 @@ class _TankLevelsScreenState extends State<TankLevelsScreen> {
       builder: (dialogContext) {
         return AlertDialog(
           backgroundColor: const Color(0xFF2C5364),
-          title: Text('Update ${tank.tankName} Level', style: const TextStyle(color: Colors.white)),
+          title: Text('Update ${tank.tankName.replaceAll('%20', ' ')} Level', style: const TextStyle(color: Colors.white)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -75,12 +75,10 @@ class _TankLevelsScreenState extends State<TankLevelsScreen> {
                 final newLevel = int.tryParse(levelController.text);
                 if (newLevel != null && newLevel >= 0 && newLevel <= 100) {
                   try {
-                    // --- FIX: Use FieldValue.serverTimestamp() to satisfy security rules ---
                     await FirebaseFirestore.instance.collection('water_tanks').doc(tank.id).update({
                       'level': newLevel,
                       'lastUpdated': FieldValue.serverTimestamp(),
                     });
-                    // --- END FIX ---
 
                     if (context.mounted) Navigator.of(dialogContext).pop();
                   } catch (e) {
@@ -109,10 +107,10 @@ class _TankLevelsScreenState extends State<TankLevelsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F2027),
       appBar: AppBar(
-        title: const Text('Tank Water Levels'),
+        title: const Text('Tank Water Levels', style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF152D4E),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      // Use a FutureBuilder to wait for the supervisor's ward ID
       body: FutureBuilder<String?>(
         future: _supervisorWardIdFuture,
         builder: (context, snapshot) {
@@ -124,11 +122,11 @@ class _TankLevelsScreenState extends State<TankLevelsScreen> {
           }
 
           final supervisorWardId = snapshot.data!;
+          // --- UPDATED: Format the ID to match how the ESP32 sends it ---
+          final tankDocId = supervisorWardId.replaceAll(' ', '%20');
 
-          // Once the ward ID is available, use a StreamBuilder to get real-time tank data
           return StreamBuilder<DocumentSnapshot>(
-            // Query the water_tanks collection for the document with the specific ward ID
-            stream: FirebaseFirestore.instance.collection('water_tanks').doc(supervisorWardId).snapshots(),
+            stream: FirebaseFirestore.instance.collection('water_tanks').doc(tankDocId).snapshots(),
             builder: (context, tankSnapshot) {
               if (tankSnapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -147,6 +145,13 @@ class _TankLevelsScreenState extends State<TankLevelsScreen> {
               return ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 16.0, left: 4),
+                    child: Text(
+                      "LIVE SENSOR DATA",
+                      style: TextStyle(color: Colors.cyanAccent, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                    ),
+                  ),
                   TankLevelCard(
                     tank: tank,
                     onUpdate: () => _showUpdateDialog(context, tank),
