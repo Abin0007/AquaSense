@@ -121,12 +121,11 @@ class _TankLevelsScreenState extends State<TankLevelsScreen> {
             return const Center(child: Text("Could not find supervisor's ward.", style: TextStyle(color: Colors.white70)));
           }
 
+          // --- FIX: Use the raw ward ID (e.g., "Ward A") directly ---
           final supervisorWardId = snapshot.data!;
-          // --- UPDATED: Format the ID to match how the ESP32 sends it ---
-          final tankDocId = supervisorWardId.replaceAll(' ', '%20');
 
           return StreamBuilder<DocumentSnapshot>(
-            stream: FirebaseFirestore.instance.collection('water_tanks').doc(tankDocId).snapshots(),
+            stream: FirebaseFirestore.instance.collection('water_tanks').doc(supervisorWardId).snapshots(),
             builder: (context, tankSnapshot) {
               if (tankSnapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());

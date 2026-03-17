@@ -1,13 +1,19 @@
 import 'package:aquasense/models/user_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dropdown_search/dropdown_search.dart'; // Import DropdownSearch
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // For date formatting
-import 'package:aquasense/utils/location_service.dart'; // For fetching location names
-import 'package:flutter_animate/flutter_animate.dart'; // Ensure flutter_animate is imported
+import 'package:intl/intl.dart';
+import 'package:aquasense/utils/location_service.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+
+const Color _dashStart = Color(0xFF0F2027);
+const Color _dashMid = Color(0xFF203A43);
+const Color _dashEnd = Color(0xFF2C5364);
+const Color _cyanCustom = Color(0xFF00F2FF);
+const Color _dangerRed = Color(0xFFFF4B2B);
 
 class UserDetailScreen extends StatefulWidget {
-  final String userId; // Receive user ID instead of the full object
+  final String userId;
   const UserDetailScreen({super.key, required this.userId});
 
   @override
@@ -26,17 +32,14 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   bool _isDialogLoadingStates = false;
   bool _isDialogLoadingDistricts = false;
   bool _isDialogLoadingWards = false;
-  // --- End Ward State ---
-
 
   @override
   void initState() {
     super.initState();
-    // Load states once for the dialog
     _loadDialogStates();
   }
 
-  // --- Functions to load location data for the dialog ---
+  // --- Location Data Loaders ---
   Future<void> _loadDialogStates() async {
     if (!mounted) return;
     setState(() => _isDialogLoadingStates = true);
@@ -72,89 +75,72 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       });
     }
   }
-  // --- End Location Functions ---
 
-  // --- *** MOVED HELPER FUNCTION HERE *** ---
-  // --- Helper for Dropdown Styles (applied to dropdown itself) ---
+  // --- Dropdown Styles ---
   DropDownDecoratorProps _getDropdownStyle(String hint, IconData icon) {
     return DropDownDecoratorProps(
-      baseStyle: const TextStyle(color: Colors.white), // Ensure dropdown text is white
+      baseStyle: const TextStyle(color: Colors.white),
       dropdownSearchDecoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white70),
-        prefixIcon: Icon(icon, color: Colors.white70),
+        hintStyle: const TextStyle(color: Colors.white54),
+        prefixIcon: Icon(icon, color: _cyanCustom),
         filled: true,
-        fillColor: Colors.black.withAlpha(77), // 30% Opacity approx
+        fillColor: Colors.black.withOpacity(0.3),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: Colors.white30)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: Colors.cyanAccent)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: Colors.white.withOpacity(0.1))),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: _cyanCustom)),
       ),
     );
   }
-  // --- *** END MOVED HELPER FUNCTION *** ---
 
-
-  // --- MODIFIED Function to show role update dialog ---
+  // --- Role Update Dialog ---
   void _showUpdateRoleDialog(UserData currentUserData) {
-    // Only allow changing between citizen and supervisor
     final List<String> availableRoles = ['citizen', 'supervisor'];
-
-    // Ensure the current role is valid for this dialog, otherwise default
-    String? roleToUpdate = availableRoles.contains(currentUserData.role)
-        ? currentUserData.role
-        : null; // Or set a default like 'citizen' if preferred
+    String? roleToUpdate = availableRoles.contains(currentUserData.role) ? currentUserData.role : null;
 
     showDialog(
       context: context,
       builder: (dialogContext) {
-        return StatefulBuilder( // Use StatefulBuilder to update dialog state
+        return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF2C5364),
-              title: const Text('Update User Role', style: TextStyle(color: Colors.white)),
+              backgroundColor: const Color(0xFF152D4E),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.white.withOpacity(0.1))),
+              title: const Text('Update User Role', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
-                // Use the filtered list of roles
-                children: availableRoles
-                    .map((String role) => RadioListTile<String>(
-                  // *** UPDATED: RadioListTile Usage ***
-                  title: Text(role.toUpperCase(), style: const TextStyle(color: Colors.white)),
-                  value: role,
-                  groupValue: roleToUpdate,
-                  onChanged: (String? value) {
-                    setDialogState(() {
-                      roleToUpdate = value;
-                    });
-                  },
-                  activeColor: Colors.cyanAccent,
-                  // *** UPDATED: Use resolveWith for fillColor ***
-                  fillColor: MaterialStateColor.resolveWith((states) =>
-                  states.contains(MaterialState.selected)
-                      ? Colors.cyanAccent
-                      : Colors.white54), // Provide color for unselected state too
-                  controlAffinity: ListTileControlAffinity.trailing,
-                  // *****************************************
-                ))
-                    .toList(),
+                children: availableRoles.map((String role) => Theme(
+                  data: ThemeData(unselectedWidgetColor: Colors.white54),
+                  child: RadioListTile<String>(
+                    title: Text(role.toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, letterSpacing: 1.0)),
+                    value: role,
+                    groupValue: roleToUpdate,
+                    onChanged: (String? value) {
+                      setDialogState(() => roleToUpdate = value);
+                    },
+                    activeColor: _cyanCustom,
+                    controlAffinity: ListTileControlAffinity.trailing,
+                  ),
+                )).toList(),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
                 ),
                 ElevatedButton(
                   onPressed: (roleToUpdate != null && roleToUpdate != currentUserData.role)
                       ? () {
                     Navigator.of(dialogContext).pop();
                     _updateUserData({'role': roleToUpdate});
-                  }
-                      : null, // Disable if no change or null
+                  } : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.cyanAccent,
-                    foregroundColor: Colors.black,
+                      backgroundColor: _cyanCustom,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
                   ),
-                  child: const Text('Update Role'),
+                  child: const Text('UPDATE ROLE', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             );
@@ -163,12 +149,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       },
     );
   }
-  // --- END MODIFIED ROLE DIALOG ---
 
-
-  // --- Function to show Ward Assignment Dialog ---
+  // --- Ward Assignment Dialog ---
   void _showAssignWardDialog(UserData currentUserData) {
-    // Reset dialog state when opening
     _dialogSelectedState = null;
     _dialogSelectedDistrict = null;
     _dialogSelectedWard = null;
@@ -183,41 +166,34 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             bool canUpdate = _dialogSelectedWard != null && _dialogSelectedWard != currentUserData.wardId;
 
             return AlertDialog(
-              backgroundColor: const Color(0xFF2C5364),
-              title: const Text('Assign User Ward', style: TextStyle(color: Colors.white)),
-              content: SingleChildScrollView( // Ensure content is scrollable
+              backgroundColor: const Color(0xFF152D4E),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.white.withOpacity(0.1))),
+              title: const Text('Assign Operations Ward', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // State Dropdown
                     DropdownSearch<String>(
                       popupProps: PopupProps.menu(
                           showSearchBox: true,
-                          menuProps: const MenuProps(backgroundColor: Color(0xFF2C5364)), // Corrected
+                          menuProps: const MenuProps(backgroundColor: Color(0xFF152D4E)),
                           searchFieldProps: TextFieldProps(
-                              style: const TextStyle(color: Colors.black), // Style for search input text
+                              style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
                                 hintText: "Search State",
+                                hintStyle: const TextStyle(color: Colors.white54),
                                 filled: true,
-                                fillColor: Colors.white.withAlpha(204), // 80% Opacity
+                                fillColor: Colors.black.withOpacity(0.2),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                               )
                           ),
-                          // Style for items in the dropdown list
-                          itemBuilder: (context, item, isSelected) => ListTile(
-                            title: Text(item, style: const TextStyle(color: Colors.white)),
-                          )
+                          itemBuilder: (context, item, isSelected) => ListTile(title: Text(item, style: const TextStyle(color: Colors.white)))
                       ),
                       items: _dialogStates,
                       enabled: !_isDialogLoadingStates,
-                      // --- Use the moved helper function ---
-                      dropdownDecoratorProps: _getDropdownStyle(
-                        // ------------------------------------
-                          _isDialogLoadingStates ? "Loading States..." : "Select State",
-                          Icons.map_outlined),
+                      dropdownDecoratorProps: _getDropdownStyle(_isDialogLoadingStates ? "Loading States..." : "Select State", Icons.map_outlined),
                       onChanged: (value) {
                         if (value != null && value != _dialogSelectedState) {
-                          // Reset lower levels and load districts
                           _loadDialogDistricts(value, setDialogState);
                           setDialogState(() {
                             _dialogSelectedState = value;
@@ -232,33 +208,26 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // District Dropdown (conditional)
                     if (_dialogSelectedState != null)
                       DropdownSearch<String>(
                         popupProps: PopupProps.menu(
                             showSearchBox: true,
-                            menuProps: const MenuProps(backgroundColor: Color(0xFF2C5364)), // Corrected
+                            menuProps: const MenuProps(backgroundColor: Color(0xFF152D4E)),
                             searchFieldProps: TextFieldProps(
-                                style: const TextStyle(color: Colors.black), // Style for search input text
+                                style: const TextStyle(color: Colors.white),
                                 decoration: InputDecoration(
                                   hintText: "Search District",
+                                  hintStyle: const TextStyle(color: Colors.white54),
                                   filled: true,
-                                  fillColor: Colors.white.withAlpha(204), // 80% Opacity
+                                  fillColor: Colors.black.withOpacity(0.2),
                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                                 )
                             ),
-                            // Style for items in the dropdown list
-                            itemBuilder: (context, item, isSelected) => ListTile(
-                              title: Text(item, style: const TextStyle(color: Colors.white)),
-                            )
+                            itemBuilder: (context, item, isSelected) => ListTile(title: Text(item, style: const TextStyle(color: Colors.white)))
                         ),
                         items: _dialogDistricts,
                         enabled: !_isDialogLoadingDistricts && _dialogDistricts.isNotEmpty,
-                        // --- Use the moved helper function ---
-                        dropdownDecoratorProps: _getDropdownStyle(
-                          // ------------------------------------
-                            _isDialogLoadingDistricts ? "Loading Districts..." : (_dialogDistricts.isEmpty ? "No Districts Found" : "Select District"),
-                            Icons.location_city),
+                        dropdownDecoratorProps: _getDropdownStyle(_isDialogLoadingDistricts ? "Loading Districts..." : (_dialogDistricts.isEmpty ? "No Districts Found" : "Select District"), Icons.location_city),
                         onChanged: (value) {
                           if (value != null && value != _dialogSelectedDistrict) {
                             _loadDialogWards(_dialogSelectedState!, value, setDialogState);
@@ -273,33 +242,26 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                       ),
                     const SizedBox(height: 16),
 
-                    // Ward Dropdown (conditional)
                     if (_dialogSelectedDistrict != null)
                       DropdownSearch<String>(
                         popupProps: PopupProps.menu(
                             showSearchBox: true,
-                            menuProps: const MenuProps(backgroundColor: Color(0xFF2C5364)), // Corrected
+                            menuProps: const MenuProps(backgroundColor: Color(0xFF152D4E)),
                             searchFieldProps: TextFieldProps(
-                                style: const TextStyle(color: Colors.black), // Style for search input text
+                                style: const TextStyle(color: Colors.white),
                                 decoration: InputDecoration(
                                   hintText: "Search Ward",
+                                  hintStyle: const TextStyle(color: Colors.white54),
                                   filled: true,
-                                  fillColor: Colors.white.withAlpha(204), // 80% Opacity
+                                  fillColor: Colors.black.withOpacity(0.2),
                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                                 )
                             ),
-                            // Style for items in the dropdown list
-                            itemBuilder: (context, item, isSelected) => ListTile(
-                              title: Text(item, style: const TextStyle(color: Colors.white)),
-                            )
+                            itemBuilder: (context, item, isSelected) => ListTile(title: Text(item, style: const TextStyle(color: Colors.white)))
                         ),
                         items: _dialogWards,
                         enabled: !_isDialogLoadingWards && _dialogWards.isNotEmpty,
-                        // --- Use the moved helper function ---
-                        dropdownDecoratorProps: _getDropdownStyle(
-                          // ------------------------------------
-                            _isDialogLoadingWards ? "Loading Wards..." : (_dialogWards.isEmpty ? "No Wards Found" : "Select Ward"),
-                            Icons.maps_home_work_outlined),
+                        dropdownDecoratorProps: _getDropdownStyle(_isDialogLoadingWards ? "Loading Wards..." : (_dialogWards.isEmpty ? "No Wards Found" : "Select Ward"), Icons.maps_home_work_outlined),
                         onChanged: (value) {
                           if (value != null) {
                             setDialogState(() => _dialogSelectedWard = value);
@@ -313,21 +275,21 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
                 ),
                 ElevatedButton(
                   onPressed: canUpdate
                       ? () {
                     Navigator.of(dialogContext).pop();
                     _updateUserData({'wardId': _dialogSelectedWard});
-                  }
-                      : null, // Disable if no valid ward selected or no change
+                  } : null,
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.cyanAccent,
+                      backgroundColor: _cyanCustom,
                       foregroundColor: Colors.black,
-                      disabledBackgroundColor: Colors.grey.withAlpha(128) // 50% Opacity
+                      disabledBackgroundColor: Colors.white.withOpacity(0.1),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
                   ),
-                  child: const Text('Assign Ward'),
+                  child: const Text('ASSIGN WARD', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             );
@@ -336,9 +298,8 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       },
     );
   }
-  // --- End Ward Assignment Dialog ---
 
-  // --- Function to handle user deletion request ---
+  // --- Deletion Request Logic ---
   Future<void> _requestUserDeletion(UserData userData) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
@@ -346,16 +307,24 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     bool? confirmRequest = await showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF2C5364),
-        title: const Text('Request User Deletion?', style: TextStyle(color: Colors.orangeAccent)),
+        backgroundColor: const Color(0xFF152D4E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: _dangerRed.withOpacity(0.5))),
+        title: Row(
+          children: const [
+            Icon(Icons.warning_amber_rounded, color: _dangerRed),
+            SizedBox(width: 8),
+            Text('Flag for Deletion?', style: TextStyle(color: Colors.white, fontSize: 18)),
+          ],
+        ),
         content: Text(
-            'This will flag ${userData.name} for permanent deletion. This action requires confirmation and cannot be undone easily. Are you sure?',
-            style: const TextStyle(color: Colors.white70)),
+            'This will flag ${userData.name} for permanent system deletion. This action requires confirmation and restricts user access. Are you sure?',
+            style: const TextStyle(color: Colors.white70, height: 1.4)),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
-          TextButton(
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: _dangerRed, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('FLAG FOR DELETION', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            child: const Text('FLAG USER', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -367,271 +336,307 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             .collection('users')
             .doc(userData.uid)
             .update({'deletionRequested': true, 'deletionRequestedAt': FieldValue.serverTimestamp()});
-
-        // Optionally show a success message or navigate back
         if (mounted) {
-          scaffoldMessenger.showSnackBar(
-            SnackBar(content: Text('${userData.name} flagged for deletion.'), backgroundColor: Colors.orange),
-          );
-          navigator.pop(); // Go back after flagging
+          scaffoldMessenger.showSnackBar(SnackBar(content: Text('${userData.name} flagged for deletion.'), backgroundColor: Colors.orangeAccent));
+          navigator.pop();
         }
-
       } catch (e) {
-        if (mounted) {
-          scaffoldMessenger.showSnackBar(
-            SnackBar(content: Text('Error flagging user: ${e.toString()}'), backgroundColor: Colors.red),
-          );
-        }
+        if (mounted) scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: _dangerRed));
       }
     }
   }
 
-
-  // --- Generic function to update user data ---
   Future<void> _updateUserData(Map<String, dynamic> dataToUpdate) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
       await FirebaseFirestore.instance.collection('users').doc(widget.userId).update(dataToUpdate);
-      if (mounted) {
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(content: Text('User data updated successfully!'), backgroundColor: Colors.green),
-        );
-      }
+      if (mounted) scaffoldMessenger.showSnackBar(const SnackBar(content: Text('User data updated successfully!'), backgroundColor: Colors.greenAccent));
     } catch (e) {
-      if (mounted) {
-        scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text('Failed to update user: ${e.toString()}'), backgroundColor: Colors.red),
-        );
-      }
+      if (mounted) scaffoldMessenger.showSnackBar(SnackBar(content: Text('Failed to update: $e'), backgroundColor: _dangerRed));
     }
-    // No need to call setState here as StreamBuilder will rebuild
-  }
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0F2027),
-      appBar: AppBar(
-        title: const Text('User Details'),
-        backgroundColor: const Color(0xFF152D4E),
-        actions: [
-          // Add delete/flag button here, only shown when data is loaded
-          StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance.collection('users').doc(widget.userId).snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData && snapshot.data!.exists) {
-                  final userData = UserData.fromFirestore(snapshot.data!);
-                  // Check if deletionRequested field exists and is true
-                  final dataMap = snapshot.data!.data() as Map<String, dynamic>?;
-                  final bool alreadyFlagged = dataMap?.containsKey('deletionRequested') ?? false && dataMap!['deletionRequested'] == true;
-
-                  // Do not show the button for admin users
-                  if (userData.role == 'admin') {
-                    return const SizedBox.shrink();
-                  }
-
-                  return IconButton(
-                    icon: Icon(
-                      alreadyFlagged ? Icons.restore_from_trash_outlined : Icons.delete_forever_outlined,
-                      color: alreadyFlagged ? Colors.grey : Colors.redAccent,
-                    ),
-                    tooltip: alreadyFlagged ? 'Undo Deletion Request' : 'Flag User for Deletion', // Updated tooltip
-                    // --- Allow undoing the flag ---
-                    onPressed: () => alreadyFlagged
-                        ? _updateUserData({'deletionRequested': false, 'deletionRequestedAt': FieldValue.delete()}) // Unflag
-                        : _requestUserDeletion(userData), // Flag
-                  );
-                }
-                return const SizedBox.shrink(); // Return empty space while loading or if user doesn't exist
-              }
-          ),
-        ],
-      ),
-      body: StreamBuilder<DocumentSnapshot>(
-        // Use stream to get real-time updates
-        stream: FirebaseFirestore.instance.collection('users').doc(widget.userId).snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.red)));
-          }
-          if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text('User not found.', style: TextStyle(color: Colors.white70)));
-          }
-
-          final userData = UserData.fromFirestore(snapshot.data!);
-          // Check if deletionRequested field exists and is true
-          final dataMap = snapshot.data!.data() as Map<String, dynamic>?;
-          final bool isFlaggedForDeletion = dataMap?.containsKey('deletionRequested') ?? false && dataMap!['deletionRequested'] == true;
-
-
-          return ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              _buildProfileHeader(userData),
-              const SizedBox(height: 30),
-              // Show deletion flag message if applicable
-              if(isFlaggedForDeletion) ...[
-                Container(
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(bottom: 20),
-                    decoration: BoxDecoration(
-                        color: Colors.orangeAccent.withAlpha(38), // 15% Opacity
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.orangeAccent)
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'This user is flagged for deletion.',
-                            style: TextStyle(color: Colors.orangeAccent[100]),
-                          ),
-                        ),
-                      ],
-                    )
-                ),
-              ],
-              _buildDetailItem(Icons.email_outlined, "Email", userData.email),
-              _buildDetailItem(Icons.phone_outlined, "Phone", userData.phoneNumber ?? 'Not Provided',
-                trailing: Icon(
-                  userData.isPhoneVerified ? Icons.verified_user : Icons.unpublished,
-                  color: userData.isPhoneVerified ? Colors.greenAccent : Colors.grey,
-                  size: 20,
-                ),
-              ),
-              _buildDetailItem(Icons.location_city_outlined, "Ward ID", userData.wardId.isEmpty ? 'Not Assigned' : userData.wardId),
-              _buildDetailItem(Icons.calendar_today_outlined, "Member Since", DateFormat('d MMMM, yyyy').format(userData.createdAt.toDate())),
-              _buildDetailItem(Icons.water_damage_outlined, "Connection Status", userData.hasActiveConnection ? 'Active' : 'Inactive',
-                  valueColor: userData.hasActiveConnection ? Colors.greenAccent : Colors.orangeAccent
-              ),
-              const Divider(height: 40, color: Colors.white24),
-
-              // --- Admin Actions ---
-              // Only show role update if the user is NOT an admin
-              if (userData.role != 'admin')
-                _buildAdminActionCard(
-                  title: 'User Role',
-                  currentValue: userData.role.toUpperCase(),
-                  icon: Icons.security_outlined,
-                  onTap: () => _showUpdateRoleDialog(userData), // Pass current data
-                ),
-              if (userData.role != 'admin') const SizedBox(height: 16),
-              _buildAdminActionCard(
-                title: 'Assign Ward',
-                currentValue: userData.wardId.isEmpty ? 'Tap to assign' : userData.wardId,
-                icon: Icons.map_outlined,
-                onTap: () => _showAssignWardDialog(userData),
-              ),
-
-              // Add more details or actions as needed
-            ].animate(interval: 50.ms).fadeIn(duration: 300.ms).slideX(begin: -0.1), // Animate list items
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildProfileHeader(UserData userData) {
-    ImageProvider backgroundImage;
-    if (userData.profileImageUrl != null && userData.profileImageUrl!.isNotEmpty) {
-      backgroundImage = NetworkImage(userData.profileImageUrl!);
-    } else {
-      // Use a default icon/placeholder if no image
-      backgroundImage = const AssetImage('assets/icon/app_icon.png'); // Or use Icons.person
-    }
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 50,
-          backgroundColor: Colors.white.withAlpha(30), // 12% Opacity approx
-          backgroundImage: backgroundImage,
-          // Handle potential errors loading network image
-          onBackgroundImageError: (_, __) {
-            // Optionally set a flag to show a placeholder icon if needed
-          },
-          child: backgroundImage is AssetImage || userData.profileImageUrl == null || userData.profileImageUrl!.isEmpty
-              ? const Icon(Icons.person, size: 50, color: Colors.white70) // Placeholder Icon
-              : null,
-        ),
-        const SizedBox(height: 16),
-        Text(
-          userData.name,
-          style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          userData.role.toUpperCase(), // Display role below name
-          style: TextStyle(
-              color: _getRoleColor(userData.role), // Use a helper for color
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.1
-          ),
-        ),
-      ],
-    ).animate().fadeIn(duration: 400.ms); // Animate header
   }
 
   Color _getRoleColor(String role) {
     switch (role) {
-      case 'admin': return Colors.redAccent;
+      case 'admin': return _dangerRed;
       case 'supervisor': return Colors.purpleAccent;
-      default: return Colors.cyanAccent; // citizen
+      default: return _cyanCustom;
     }
   }
 
-  Widget _buildDetailItem(IconData icon, String label, String value, {Color? valueColor, Widget? trailing}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.white70, size: 20),
-          const SizedBox(width: 16),
-          Text('$label:', style: const TextStyle(color: Colors.white70, fontSize: 14)),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: TextStyle(
-                color: valueColor ?? Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_dashStart, _dashMid, _dashEnd],
           ),
-          if (trailing != null) ...[
-            const SizedBox(width: 8),
-            trailing,
-          ]
-        ],
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // --- APP BAR ---
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const Text('User Profile', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white, letterSpacing: 0.5)),
+
+                    // Delete/Flag Button Stream
+                    StreamBuilder<DocumentSnapshot>(
+                        stream: FirebaseFirestore.instance.collection('users').doc(widget.userId).snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData && snapshot.data!.exists) {
+                            final userData = UserData.fromFirestore(snapshot.data!);
+                            final dataMap = snapshot.data!.data() as Map<String, dynamic>?;
+                            final bool alreadyFlagged = dataMap?.containsKey('deletionRequested') ?? false && dataMap!['deletionRequested'] == true;
+
+                            if (userData.role == 'admin') return const SizedBox(width: 48);
+
+                            return IconButton(
+                              icon: Icon(alreadyFlagged ? Icons.restore_from_trash : Icons.person_remove, color: alreadyFlagged ? Colors.grey : _dangerRed),
+                              tooltip: alreadyFlagged ? 'Undo Deletion Request' : 'Flag User for Deletion',
+                              onPressed: () => alreadyFlagged
+                                  ? _updateUserData({'deletionRequested': false, 'deletionRequestedAt': FieldValue.delete()})
+                                  : _requestUserDeletion(userData),
+                            );
+                          }
+                          return const SizedBox(width: 48);
+                        }
+                    ),
+                  ],
+                ),
+              ),
+
+              // --- MAIN CONTENT ---
+              Expanded(
+                child: StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance.collection('users').doc(widget.userId).snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator(color: _cyanCustom));
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: _dangerRed)));
+                    }
+                    if (!snapshot.hasData || !snapshot.data!.exists) {
+                      return const Center(child: Text('User not found.', style: TextStyle(color: Colors.white54)));
+                    }
+
+                    final userData = UserData.fromFirestore(snapshot.data!);
+                    final dataMap = snapshot.data!.data() as Map<String, dynamic>?;
+                    final bool isFlaggedForDeletion = dataMap?.containsKey('deletionRequested') ?? false && dataMap!['deletionRequested'] == true;
+                    final roleColor = _getRoleColor(userData.role);
+
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      child: Column(
+                        children: [
+                          // 1. Profile Header
+                          _buildProfileHeader(userData, roleColor),
+                          const SizedBox(height: 32),
+
+                          // 2. Deletion Warning
+                          if(isFlaggedForDeletion)
+                            Container(
+                                padding: const EdgeInsets.all(16),
+                                margin: const EdgeInsets.only(bottom: 24),
+                                decoration: BoxDecoration(
+                                    color: _dangerRed.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: _dangerRed.withOpacity(0.5))
+                                ),
+                                child: Row(
+                                  children: const [
+                                    Icon(Icons.warning_amber_rounded, color: _dangerRed, size: 28),
+                                    SizedBox(width: 16),
+                                    Expanded(child: Text('This user account is currently flagged for permanent deletion.', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, height: 1.4))),
+                                  ],
+                                )
+                            ).animate().fadeIn().slideY(begin: -0.1).shake(hz: 3, duration: 400.ms),
+
+                          // 3. User Details Container
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.03),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: Colors.white.withOpacity(0.05)),
+                            ),
+                            child: Column(
+                              children: [
+                                _buildDetailRow(Icons.email_outlined, "Email Address", userData.email),
+                                const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(color: Colors.white10, height: 1)),
+                                _buildDetailRow(Icons.phone_outlined, "Phone Number", userData.phoneNumber ?? 'Not Provided',
+                                  trailing: Icon(userData.isPhoneVerified ? Icons.verified : Icons.error_outline, color: userData.isPhoneVerified ? Colors.greenAccent : Colors.orangeAccent, size: 18),
+                                ),
+                                const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(color: Colors.white10, height: 1)),
+                                _buildDetailRow(Icons.location_city_outlined, "Assigned Ward", userData.wardId.isEmpty ? 'Unassigned' : userData.wardId),
+                                const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(color: Colors.white10, height: 1)),
+                                _buildDetailRow(Icons.calendar_today_outlined, "Member Since", DateFormat('MMM dd, yyyy').format(userData.createdAt.toDate())),
+                                const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(color: Colors.white10, height: 1)),
+                                _buildDetailRow(Icons.water_drop_outlined, "Connection Status", userData.hasActiveConnection ? 'Active' : 'Inactive',
+                                    valueColor: userData.hasActiveConnection ? Colors.greenAccent : Colors.white54
+                                ),
+                              ],
+                            ),
+                          ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1),
+
+                          const SizedBox(height: 32),
+
+                          // 4. Admin Actions
+                          if (userData.role != 'admin') ...[
+                            Row(
+                              children: [
+                                const Text("ADMINISTRATIVE ACTIONS", style: TextStyle(color: _cyanCustom, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                                const SizedBox(width: 12),
+                                Expanded(child: Container(height: 1, color: _cyanCustom.withOpacity(0.3))),
+                              ],
+                            ).animate().fadeIn(delay: 200.ms),
+                            const SizedBox(height: 16),
+
+                            _buildAdminActionTile(
+                              title: 'Modify System Role',
+                              currentValue: 'Current: ${userData.role.toUpperCase()}',
+                              icon: Icons.admin_panel_settings_outlined,
+                              onTap: () => _showUpdateRoleDialog(userData),
+                            ).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1),
+
+                            const SizedBox(height: 12),
+
+                            _buildAdminActionTile(
+                              title: 'Assign Operations Ward',
+                              currentValue: userData.wardId.isEmpty ? 'Tap to configure ward mapping' : 'Assigned to: ${userData.wardId}',
+                              icon: Icons.map_outlined,
+                              onTap: () => _showAssignWardDialog(userData),
+                            ).animate().fadeIn(delay: 400.ms).slideX(begin: 0.1),
+                          ],
+
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildAdminActionCard({
-    required String title,
-    required String currentValue,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Card(
-      color: Colors.white.withAlpha(25), // ~10% Opacity
-      child: ListTile(
-        leading: Icon(icon, color: Colors.cyanAccent),
-        title: Text(title, style: const TextStyle(color: Colors.white70)),
-        subtitle: Text(currentValue, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-        trailing: const Icon(Icons.edit_outlined, color: Colors.white54),
-        onTap: onTap,
-      ),
+  // --- REUSABLE UI COMPONENTS ---
+
+  Widget _buildProfileHeader(UserData userData, Color roleColor) {
+    ImageProvider backgroundImage;
+    if (userData.profileImageUrl != null && userData.profileImageUrl!.isNotEmpty) {
+      backgroundImage = NetworkImage(userData.profileImageUrl!);
+    } else {
+      backgroundImage = const AssetImage('assets/icon/app_icon.png');
+    }
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(colors: [roleColor, roleColor.withOpacity(0.2)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+            boxShadow: [BoxShadow(color: roleColor.withOpacity(0.3), blurRadius: 20, spreadRadius: 2)],
+          ),
+          child: CircleAvatar(
+            radius: 50,
+            backgroundColor: const Color(0xFF152D4E),
+            backgroundImage: backgroundImage,
+            onBackgroundImageError: (_, __) {},
+            child: backgroundImage is AssetImage || userData.profileImageUrl == null || userData.profileImageUrl!.isEmpty
+                ? const Icon(Icons.person, size: 40, color: Colors.white54)
+                : null,
+          ),
+        ),
+        const SizedBox(height: 20),
+        Text(userData.name, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(color: roleColor.withOpacity(0.15), borderRadius: BorderRadius.circular(20), border: Border.all(color: roleColor.withOpacity(0.5))),
+          child: Text(userData.role.toUpperCase(), style: TextStyle(color: roleColor, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+        ),
+      ],
+    ).animate().fadeIn().scale(begin: const Offset(0.9, 0.9));
+  }
+
+  Widget _buildDetailRow(IconData icon, String label, String value, {Color? valueColor, Widget? trailing}) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(8)),
+          child: Icon(icon, color: _cyanCustom, size: 18),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(value, style: TextStyle(color: valueColor ?? Colors.white, fontSize: 14, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis),
+                  ),
+                  if (trailing != null) trailing,
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
-} // End of _UserDetailScreenState class
+  Widget _buildAdminActionTile({required String title, required String currentValue, required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: Colors.blueAccent.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, color: Colors.blueAccent, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(currentValue, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white30, size: 16),
+          ],
+        ),
+      ),
+    );
+  }
+}

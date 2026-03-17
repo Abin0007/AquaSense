@@ -32,6 +32,208 @@ class PipelineHealthScreen extends StatefulWidget {
 class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
   final IoTService _ioTService = IoTService();
 
+  // --- NEW: Helper to fetch GPS for the Add Sensor feature ---
+  Future<GeoPoint?> _fetchCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enable Location Services.')));
+      return null;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return null;
+    }
+    if (permission == LocationPermission.deniedForever) return null;
+
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    return GeoPoint(position.latitude, position.longitude);
+  }
+
+  // --- NEW: Bottom Sheet to Add Sensor ---
+  void _showAddSensorModal() {
+    final nameController = TextEditingController();
+    final areaController = TextEditingController();
+    GeoPoint? fetchedLoc;
+    bool isFetching = false;
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                color: Color(0xFF152D4E),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(10)))),
+                  const SizedBox(height: 24),
+                  const Text("Deploy New Sensor", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  const Text("Register a new IoT node for this ward.", style: TextStyle(color: Colors.white54, fontSize: 13)),
+                  const SizedBox(height: 24),
+
+                  // Sensor Name
+                  TextField(
+                    controller: nameController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: "Sensor Name / ID",
+                      labelStyle: const TextStyle(color: _cyanCustom),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _cyanCustom)),
+                      prefixIcon: const Icon(Icons.sensors, color: _cyanCustom),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Checkpoint Area
+                  TextField(
+                    controller: areaController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: "Checkpoint Name / Area",
+                      labelStyle: const TextStyle(color: _cyanCustom),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _cyanCustom)),
+                      prefixIcon: const Icon(Icons.place, color: _cyanCustom),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // GPS Location Section
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+                    child: Row(
+                      children: [
+                        Icon(Icons.gps_fixed, color: fetchedLoc != null ? Colors.greenAccent : Colors.white54),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text("GPS Coordinates", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              Text(
+                                fetchedLoc != null ? "${fetchedLoc!.latitude.toStringAsFixed(5)}, ${fetchedLoc!.longitude.toStringAsFixed(5)}" : "Not acquired yet",
+                                style: TextStyle(color: fetchedLoc != null ? Colors.greenAccent : Colors.white54, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isFetching)
+                          const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: _cyanCustom, strokeWidth: 2))
+                        else
+                          TextButton(
+                            onPressed: () async {
+                              setModalState(() => isFetching = true);
+                              final loc = await _fetchCurrentLocation();
+                              setModalState(() {
+                                isFetching = false;
+                                fetchedLoc = loc;
+                              });
+                            },
+                            child: const Text("FETCH", style: TextStyle(color: _cyanCustom, fontWeight: FontWeight.bold)),
+                          )
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Save Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _cyanCustom,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: isSaving ? null : () async {
+                        if (nameController.text.isEmpty || areaController.text.isEmpty || fetchedLoc == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please fill all fields and fetch GPS.", style: TextStyle(color: Colors.white)), backgroundColor: _dangerRed));
+                          return;
+                        }
+
+                        setModalState(() => isSaving = true);
+                        try {
+                          // Save to a generic 'deployed_sensors' collection so it doesn't break current dual-sensor UI
+                          await FirebaseFirestore.instance.collection('deployed_sensors').add({
+                            'wardId': widget.wardId,
+                            'sensorName': nameController.text.trim(),
+                            'checkpointArea': areaController.text.trim(),
+                            'location': fetchedLoc,
+                            'deployedAt': FieldValue.serverTimestamp(),
+                            'status': 'Pending Network Configuration',
+                          });
+                          if (mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sensor Deployed Successfully!", style: TextStyle(color: Colors.black)), backgroundColor: _cyanCustom));
+                          }
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e", style: const TextStyle(color: Colors.white)), backgroundColor: _dangerRed));
+                        } finally {
+                          setModalState(() => isSaving = false);
+                        }
+                      },
+                      child: isSaving
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.black))
+                          : const Text("SAVE SENSOR DATA", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // --- NEW: Custom Card UI for Adding Sensor ---
+  Widget _buildAddSensorButton(BuildContext context) {
+    return GestureDetector(
+      onTap: _showAddSensorModal,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: _cyanCustom.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _cyanCustom.withOpacity(0.3)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: _cyanCustom.withOpacity(0.1), shape: BoxShape.circle),
+              child: const Icon(Icons.add_location_alt, color: _cyanCustom, size: 28),
+            ),
+            const SizedBox(height: 12),
+            const Text("Deploy Additional Sensor", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 6),
+            const Text("Register a new checkpoint in this ward", style: TextStyle(color: Colors.white54, fontSize: 12)),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,7 +280,6 @@ class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
                     }
 
                     final node = snapshot.data!;
-                    // NEW LEAK LOGIC: Auto-detects leak if Flow In is significantly greater than Flow Out
                     final isLeaking = node.status == 'Leak Detected' || (node.flowRateIn - node.flowRateOut) > 0.5;
 
                     return SingleChildScrollView(
@@ -147,6 +348,11 @@ class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
                             EmergencyWorkflowTimeline(wardId: widget.wardId, node: node).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2)
                           else
                             _buildFullHistoryButton(context).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2),
+
+                          const SizedBox(height: 24),
+
+                          // --- NEW: DEPLOY SENSOR BUTTON (Fills the vacant space) ---
+                          _buildAddSensorButton(context).animate().fadeIn(delay: 700.ms).slideY(begin: 0.2),
                         ],
                       ),
                     );
@@ -292,13 +498,12 @@ class EmergencyWorkflowTimeline extends StatefulWidget {
 }
 
 class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
-  bool _isLoading = false; // Add state variable for loading
+  bool _isLoading = false;
 
   Future<GeoPoint?> _getLiveLocation(BuildContext context) async {
     bool serviceEnabled;
     LocationPermission permission;
 
-    // Check if location services are enabled
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       if (context.mounted) {
@@ -320,19 +525,16 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
 
     if (permission == LocationPermission.deniedForever) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location permissions are permanently denied. Please enable them in system settings.', style: TextStyle(color: Colors.white)), backgroundColor: Colors.redAccent));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location permissions are permanently denied.', style: TextStyle(color: Colors.white)), backgroundColor: Colors.redAccent));
       }
       return null;
     }
 
-    // If we reach here, permissions are granted!
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     return GeoPoint(position.latitude, position.longitude);
   }
 
-  // --- CORRECTED: Helper method to launch Map for Sensors ---
   Future<void> _launchMap(GeoPoint loc) async {
-    // Official Google Maps URL schema
     final url = 'https://www.google.com/maps/search/?api=1&query=${loc.latitude},${loc.longitude}';
 
     if (await canLaunchUrl(Uri.parse(url))) {
@@ -347,22 +549,18 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
   }
 
   Future<void> _uploadAndProceed(BuildContext context, String logId, String step) async {
-    // 1. Get location first
     final loc = await _getLiveLocation(context);
-    if (loc == null) return; // Stop if permission denied
+    if (loc == null) return;
 
-    // 2. Open Camera
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.camera, imageQuality: 70);
     if (pickedFile == null) return;
 
-    // 3. Show Loading Overlay
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Using your existing storage service to upload
       final url = await StorageService().uploadSupervisorComplaintImage(XFile(pickedFile.path), logId, step);
 
       if (step == 'arrived') {
@@ -373,10 +571,9 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
           'arrivedLocation': loc
         });
       } else if (step == 'resolved') {
-        // Also update the pipeline node status back to normal to clear the leak animation
         await FirebaseFirestore.instance.collection('pipeline_nodes').doc(widget.node.nodeId).update({
           'status': 'Normal',
-          'flowRateOut': widget.node.flowRateIn, // Manually fix variance for demo purposes
+          'flowRateOut': widget.node.flowRateIn,
         });
 
         await IoTService().updateLeakWorkflow(logId, {
@@ -389,7 +586,6 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
     } catch (e) {
       debugPrint("Error in workflow: $e");
     } finally {
-      // 4. Hide Loading Overlay safely
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -405,7 +601,6 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) return const CircularProgressIndicator(color: _cyanCustom);
 
-        // If leak detected but no log exists yet, show initialize button
         if (!snapshot.hasData || snapshot.data == null) {
           return ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -421,7 +616,6 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
 
         final log = snapshot.data!;
 
-        // Use a Stack to conditionally show the loading overlay over the timeline
         return Stack(
           children: [
             Container(
@@ -437,7 +631,6 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
                   const Text("EMERGENCY WORKFLOW", style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
                   const SizedBox(height: 24),
 
-                  // Step 1: Shutdown Valves
                   _buildTimelineStep(
                     title: "Shutdown Main Valves",
                     isCompleted: log.valvesShutdownAt != null,
@@ -452,7 +645,6 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
                         : const Text("Valves secured.", style: TextStyle(color: Colors.white54, fontSize: 12)),
                   ),
 
-                  // Step 2: Visit Site (Show Map locations)
                   _buildTimelineStep(
                     title: "Locate & Inspect Site",
                     isCompleted: log.arrivedAt != null,
@@ -478,7 +670,6 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
                         : null,
                   ),
 
-                  // Step 3: Repair & Resolve
                   _buildTimelineStep(
                     title: "Repair Pipeline",
                     isCompleted: log.status == 'Resolved',
@@ -496,7 +687,6 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
               ),
             ),
 
-            // Loading Overlay
             if (_isLoading)
               Positioned.fill(
                 child: Container(
@@ -515,7 +705,6 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
     );
   }
 
-  // --- Clickable Location Card ---
   Widget _buildLocationCard(String label, String address, GeoPoint? loc) {
     return GestureDetector(
       onTap: () {
@@ -528,13 +717,13 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.08), // Slightly lighter to look clickable
+          color: Colors.white.withOpacity(0.08),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.white10),
         ),
         child: Row(
           children: [
-            const Icon(Icons.map_rounded, color: _cyanCustom, size: 20), // Changed icon to suggest mapping
+            const Icon(Icons.map_rounded, color: _cyanCustom, size: 20),
             const SizedBox(width: 12),
             Expanded(
                 child: Column(
@@ -546,7 +735,7 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
                     ]
                 )
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white30, size: 14), // Added arrow to suggest tap action
+            const Icon(Icons.arrow_forward_ios, color: Colors.white30, size: 14),
           ],
         ),
       ),
@@ -661,7 +850,6 @@ class PipelinePainter extends CustomPainter {
     final double pipeHeight = 45.0;
     final double pipeY = size.height - pipeHeight - 50;
 
-    // 1. Draw Outer Metallic Pipe
     final RRect pipeOuter = RRect.fromRectAndRadius(Rect.fromLTWH(20, pipeY, size.width - 40, pipeHeight), const Radius.circular(6));
     final Paint pipePaint = Paint()
       ..shader = const LinearGradient(
@@ -670,35 +858,28 @@ class PipelinePainter extends CustomPainter {
         stops: [0.0, 0.2, 0.5, 0.8, 1.0],
       ).createShader(pipeOuter.outerRect);
 
-    // Shadow
     canvas.drawRRect(pipeOuter.shift(const Offset(0, 15)), Paint()..color = Colors.black45..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15));
     canvas.drawRRect(pipeOuter, pipePaint);
 
-    // Joints
     final Paint jointPaint = Paint()..color = const Color(0xFF2D3748);
     canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(10, pipeY - 5, 12, pipeHeight + 10), const Radius.circular(2)), jointPaint);
     canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(size.width - 22, pipeY - 5, 12, pipeHeight + 10), const Radius.circular(2)), jointPaint);
 
-    // 2. NEW ENHANCED INNER WATER ANIMATION
     if (!isLeaking) {
       canvas.save();
       canvas.clipRRect(pipeOuter);
 
-      // Base blue water background
       canvas.drawRRect(pipeOuter, Paint()..color = _cyanCustom.withOpacity(0.15));
 
-      // Fast moving water blobs/segments
       final Paint flowPaint = Paint()
         ..shader = const LinearGradient(
           colors: [Colors.transparent, _cyanCustom, Colors.transparent],
         ).createShader(Rect.fromLTWH(0, 0, 150, pipeHeight));
 
       for (int i = 0; i < 3; i++) {
-        // Offset the progress so there are multiple distinct waves
         double p = (progress + (i * 0.33)) % 1.0;
         double x = (p * size.width * 1.5) - (size.width * 0.2);
 
-        // Draw an elongated pill shape representing a fast burst of water
         canvas.drawRRect(
             RRect.fromRectAndRadius(Rect.fromLTWH(x, pipeY + 8, 80, pipeHeight - 16), const Radius.circular(20)),
             flowPaint
@@ -707,11 +888,9 @@ class PipelinePainter extends CustomPainter {
       canvas.restore();
     }
 
-    // 3. Draw Leak Physics
     if (isLeaking) {
       final double crackX = size.width / 2 - 10;
 
-      // Crack lines
       final Path crackPath = Path()
         ..moveTo(crackX, pipeY)
         ..lineTo(crackX + 10, pipeY + 10)
@@ -720,19 +899,16 @@ class PipelinePainter extends CustomPainter {
 
       canvas.drawPath(crackPath, Paint()..color = const Color(0xFF742A2A)..strokeWidth = 2..style = PaintingStyle.stroke..strokeCap=StrokeCap.round);
 
-      // Main mist blast
       canvas.drawCircle(Offset(crackX + 5, pipeY), 25, Paint()..color = Colors.blue[300]!.withOpacity(0.3)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20));
 
-      // Particle Spray Physics
       final Paint particlePaint = Paint();
       for (int i = 0; i < 60; i++) {
         double p = (progress + (i * 0.016)) % 1.0;
 
-        // Parabolic arc calculations
         double spread = math.sin(i * 45) * 80.0;
         double dx = crackX + (spread * p);
         double force = 180.0 + (math.cos(i * 12) * 60.0);
-        double dy = pipeY - (force * p) + (100 * p * p); // Gravity arc
+        double dy = pipeY - (force * p) + (100 * p * p);
 
         double radius = (1.0 - p) * 3.5;
         double opacity = (1.0 - p).clamp(0.0, 1.0);

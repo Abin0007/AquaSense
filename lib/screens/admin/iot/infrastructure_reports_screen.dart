@@ -3,6 +3,9 @@ import 'package:intl/intl.dart';
 import '../../../models/leak_log_model.dart';
 import '../../../services/iot_service.dart';
 
+// ✅ IMPORT THE SUPERVISOR'S INCIDENT DETAIL SCREEN
+import '../../supervisor/iot/incident_detail_screen.dart';
+
 class InfrastructureReportsScreen extends StatelessWidget {
   const InfrastructureReportsScreen({Key? key}) : super(key: key);
 
@@ -54,56 +57,69 @@ class InfrastructureReportsScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(15),
                   side: BorderSide(color: Colors.white.withOpacity(0.1)),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Ward ID: ${log.wardId}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
-                          Chip(
-                            label: Text(
-                                log.status.replaceAll('_', ' '),
-                                style: TextStyle(
-                                    color: isOngoing ? Colors.redAccent : Colors.greenAccent,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold
-                                )
+                // ✅ WRAPPED IN INKWELL TO ALLOW TAPPING
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(15),
+                  onTap: () {
+                    // ✅ ROUTE TO THE DETAIL SCREEN
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => IncidentDetailScreen(log: log),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Ward ID: ${log.wardId}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                            Chip(
+                              label: Text(
+                                  log.status.replaceAll('_', ' '),
+                                  style: TextStyle(
+                                      color: isOngoing ? Colors.redAccent : Colors.greenAccent,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold
+                                  )
+                              ),
+                              backgroundColor: isOngoing ? Colors.redAccent.withOpacity(0.1) : Colors.greenAccent.withOpacity(0.1),
+                              side: BorderSide(color: isOngoing ? Colors.redAccent : Colors.greenAccent),
                             ),
-                            backgroundColor: isOngoing ? Colors.redAccent.withOpacity(0.1) : Colors.greenAccent.withOpacity(0.1),
-                            side: BorderSide(color: isOngoing ? Colors.redAccent : Colors.greenAccent),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text("Started: ${DateFormat('MMM dd, yyyy - hh:mm a').format(log.startTime)}", style: const TextStyle(color: Colors.white54)),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text("Started: ${DateFormat('MMM dd, yyyy - hh:mm a').format(log.startTime)}", style: const TextStyle(color: Colors.white54)),
 
-                      if (!isOngoing && log.resolvedAt != null)
-                        Text("Resolved: ${DateFormat('MMM dd, yyyy - hh:mm a').format(log.resolvedAt!)}", style: const TextStyle(color: Colors.white54)),
+                        if (!isOngoing && log.resolvedAt != null)
+                          Text("Resolved: ${DateFormat('MMM dd, yyyy - hh:mm a').format(log.resolvedAt!)}", style: const TextStyle(color: Colors.white54)),
 
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 12),
 
-                      // Duration display
-                      Row(
-                        children: [
-                          const Icon(Icons.timer_outlined, color: Colors.orangeAccent, size: 16),
-                          const SizedBox(width: 8),
-                          Text("Resolution Time: $durationText", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orangeAccent, fontSize: 13)),
-                        ],
-                      ),
+                        // Duration display
+                        Row(
+                          children: [
+                            const Icon(Icons.timer_outlined, color: Colors.orangeAccent, size: 16),
+                            const SizedBox(width: 8),
+                            Text("Resolution Time: $durationText", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orangeAccent, fontSize: 13)),
+                          ],
+                        ),
 
-                      const SizedBox(height: 8),
+                        const SizedBox(height: 8),
 
-                      Row(
-                        children: [
-                          const Icon(Icons.water_drop, color: Colors.cyanAccent, size: 16),
-                          const SizedBox(width: 8),
-                          Text("Est. Water Lost: ${log.estimatedWaterLost} Liters", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.cyanAccent, fontSize: 13)),
-                        ],
-                      )
-                    ],
+                        Row(
+                          children: [
+                            const Icon(Icons.water_drop, color: Colors.cyanAccent, size: 16),
+                            const SizedBox(width: 8),
+                            Text("Est. Water Lost: ${log.estimatedWaterLost} Liters", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.cyanAccent, fontSize: 13)),
+                          ],
+                        )
+                      ],
+                    ),
                   ),
                 ),
               );

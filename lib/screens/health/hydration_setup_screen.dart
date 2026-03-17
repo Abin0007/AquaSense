@@ -111,7 +111,7 @@ class _HydrationSetupScreenState extends State<HydrationSetupScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Personalize\nYour Goal",
+            Text("Personalize",
                 style: GoogleFonts.poppins(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
