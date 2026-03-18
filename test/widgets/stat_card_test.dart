@@ -17,10 +17,10 @@ void main() {
         // Act: Build the StatCard widget within a test environment
         // We wrap it in MaterialApp and Scaffold to provide necessary context (like text direction).
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: Row( // StatCard uses Expanded, so it needs a Row/Column parent
-                children: const [
+                children: [
                   StatCard(
                     title: testTitle,
                     value: testValue,

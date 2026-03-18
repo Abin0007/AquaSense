@@ -39,8 +39,8 @@ class _RegisterScreenState extends State<RegisterScreen> with TickerProviderStat
 
   final LocationService _locationService = LocationService();
   final List<String> _states = [];
-  List<String> _districts = [];
-  List<String> _wards = [];
+  final List<String> _districts = [];
+  final List<String> _wards = [];
 
   String? selectedState;
   String? selectedDistrict;

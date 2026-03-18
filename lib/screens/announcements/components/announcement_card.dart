@@ -131,7 +131,7 @@ class AnnouncementCard extends StatelessWidget {
                 onPressed: onDelete,
                 tooltip: 'Delete Announcement',
                 style: IconButton.styleFrom(
-                    backgroundColor: Colors.black.withOpacity(0.5), // Slightly darker background
+                    backgroundColor: Colors.black.withValues(alpha: 0.5), // Slightly darker background
                     padding: const EdgeInsets.all(4) // Smaller padding
                 ),
               ),

@@ -76,7 +76,7 @@ class _ConnectionRequestDetailScreenState extends State<ConnectionRequestDetailS
               ),
               if (_isCompleting)
                 Container(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   child: const Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -102,7 +102,7 @@ class _ConnectionRequestDetailScreenState extends State<ConnectionRequestDetailS
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location not provided for this request.')));
       return;
     }
-    final uri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${lat},${long}");
+    final uri = Uri.parse("https://www.google.com/maps/search/?api=1&query=$lat,$long");
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open map.')));
@@ -351,8 +351,8 @@ class _ConnectionRequestDetailScreenState extends State<ConnectionRequestDetailS
         onPressed: isEnabled ? () => _updateStatus(context, liveRequest, status) : null,
         style: OutlinedButton.styleFrom(
             foregroundColor: Colors.white,
-            side: BorderSide(color: isEnabled ? Colors.white30 : Colors.grey.withOpacity(0.2)),
-            disabledForegroundColor: Colors.grey.withOpacity(0.5)
+            side: BorderSide(color: isEnabled ? Colors.white30 : Colors.grey.withValues(alpha: 0.2)),
+            disabledForegroundColor: Colors.grey.withValues(alpha: 0.5)
         ),
         child: Text('Set to: $status'),
       ),

@@ -13,7 +13,7 @@ const Color _dangerRed = Color(0xFFFF4B2B);
 
 class ManageSensorsScreen extends StatefulWidget {
   final String wardId;
-  const ManageSensorsScreen({Key? key, required this.wardId}) : super(key: key);
+  const ManageSensorsScreen({super.key, required this.wardId});
 
   @override
   State<ManageSensorsScreen> createState() => _ManageSensorsScreenState();
@@ -111,10 +111,10 @@ class _ManageSensorsScreenState extends State<ManageSensorsScreen> {
         backgroundColor: const Color(0xFF152D4E),
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: _dangerRed.withOpacity(0.5))
+            side: BorderSide(color: _dangerRed.withValues(alpha: 0.5))
         ),
-        title: Row(
-          children: const [
+        title: const Row(
+          children: [
             Icon(Icons.warning_amber_rounded, color: _dangerRed),
             SizedBox(width: 10),
             Text("Remove Sensor?", style: TextStyle(color: Colors.white, fontSize: 18)),
@@ -274,7 +274,7 @@ class _ManageSensorsScreenState extends State<ManageSensorsScreen> {
                           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                             return Container(
                               padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white.withOpacity(0.1))),
+                              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white.withValues(alpha: 0.1))),
                               child: const Center(child: Text("No additional sensors deployed yet.", style: TextStyle(color: Colors.white54))),
                             ).animate().fadeIn();
                           }
@@ -306,7 +306,7 @@ class _ManageSensorsScreenState extends State<ManageSensorsScreen> {
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), shape: BoxShape.circle),
+        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), shape: BoxShape.circle),
         child: Icon(icon, color: Colors.white, size: 20),
       ),
     );
@@ -317,9 +317,9 @@ class _ManageSensorsScreenState extends State<ManageSensorsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -364,7 +364,7 @@ class _ManageSensorsScreenState extends State<ManageSensorsScreen> {
               ),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.1),
+                  backgroundColor: Colors.white.withValues(alpha: 0.1),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
@@ -390,15 +390,15 @@ class _ManageSensorsScreenState extends State<ManageSensorsScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: const Icon(Icons.sensors, color: Colors.white70, size: 24),
           ),
           const SizedBox(width: 16),
@@ -412,7 +412,7 @@ class _ManageSensorsScreenState extends State<ManageSensorsScreen> {
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.orangeAccent.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
+                  decoration: BoxDecoration(color: Colors.orangeAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(6)),
                   child: Text(status, style: const TextStyle(color: Colors.orangeAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                 )
               ],

@@ -201,7 +201,7 @@ class _ComplaintStatusScreenState extends State<ComplaintStatusScreen> { // Adde
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.2),
+        color: Colors.black.withValues(alpha: 0.2),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(15),
           bottomRight: Radius.circular(15),
@@ -215,7 +215,7 @@ class _ComplaintStatusScreenState extends State<ComplaintStatusScreen> { // Adde
           ...List.generate(5, (index) {
             return InkWell(
               onTap: () => _submitRating(complaintId, index + 1),
-              child: Icon(
+              child: const Icon(
                 Icons.star_border, // Use border initially
                 color: Colors.amber,
                 size: 28, // Slightly larger stars

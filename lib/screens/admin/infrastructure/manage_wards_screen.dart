@@ -237,7 +237,7 @@ class _ManageWardsScreenState extends State<ManageWardsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.location_off, size: 80, color: Colors.white.withOpacity(0.2)),
+          Icon(Icons.location_off, size: 80, color: Colors.white.withValues(alpha: 0.2)),
           const SizedBox(height: 16),
           const Text(
             'No Wards Registered',

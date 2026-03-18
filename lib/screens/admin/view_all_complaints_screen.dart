@@ -87,9 +87,9 @@ class _ViewAllComplaintsScreenState extends State<ViewAllComplaintsScreen> {
                       margin: const EdgeInsets.only(right: 12, top: 12, bottom: 12),
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       decoration: BoxDecoration(
-                        color: isSelected ? _cyanCustom.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+                        color: isSelected ? _cyanCustom.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: isSelected ? _cyanCustom : Colors.white.withOpacity(0.1)),
+                        border: Border.all(color: isSelected ? _cyanCustom : Colors.white.withValues(alpha: 0.1)),
                       ),
                       alignment: Alignment.center,
                       child: Text(
@@ -160,9 +160,9 @@ class _ViewAllComplaintsScreenState extends State<ViewAllComplaintsScreen> {
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.03),
+                            color: Colors.white.withValues(alpha: 0.03),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white.withOpacity(0.05)),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,9 +183,9 @@ class _ViewAllComplaintsScreenState extends State<ViewAllComplaintsScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: statusColor.withOpacity(0.15),
+                                      color: statusColor.withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(color: statusColor.withOpacity(0.5)),
+                                      border: Border.all(color: statusColor.withValues(alpha: 0.5)),
                                     ),
                                     child: Text(
                                       complaint.status.toUpperCase(),

@@ -1,6 +1,5 @@
 import 'package:aquasense/models/complaint_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
-import 'package:firebase_auth/firebase_auth.dart'; // Import Auth
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart'; // For animations
@@ -186,8 +185,8 @@ class _ComplaintDetailScreenCitizenState extends State<ComplaintDetailScreenCiti
           children: List.generate(5, (index) {
             return InkWell(
               onTap: () => _submitRating(complaintId, index + 1),
-              child: Padding( // Add padding around stars
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: const Padding( // Add padding around stars
+                padding: EdgeInsets.symmetric(horizontal: 4.0),
                 child: Icon(
                   Icons.star_border_outlined, // Use outline
                   color: Colors.amber,

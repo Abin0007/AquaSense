@@ -84,9 +84,9 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
         if (latestTimestamp != null) {
           await FirebaseFirestore.instance.collection('users').doc(userId).update({
             // Set timestamp slightly ahead to avoid race conditions with stream
-            'lastReadAnnouncementsTimestamp': Timestamp(latestTimestamp!.seconds + 1, 0), // Use ! since it's checked
+            'lastReadAnnouncementsTimestamp': Timestamp(latestTimestamp.seconds + 1, 0),
           });
-          debugPrint("Updated lastReadAnnouncementsTimestamp for user $userId to ${latestTimestamp!.toDate().add(const Duration(seconds: 1))}"); // Use !
+          debugPrint("Updated lastReadAnnouncementsTimestamp for user $userId to ${latestTimestamp.toDate().add(const Duration(seconds: 1))}");
         } else {
           // If no announcements ever, set it to now so indicator doesn't show for empty list
           // Check if timestamp already exists before overwriting

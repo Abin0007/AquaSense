@@ -150,6 +150,7 @@ class _ManageWardAnnouncementsScreenState extends State<ManageWardAnnouncementsS
         _selectedSupplyDate = null;
         _selectedSupplyTime = null;
       });
+      if (!mounted) return;
       FocusScope.of(context).unfocus();
       scaffoldMessenger.showSnackBar(
         const SnackBar(
@@ -253,7 +254,7 @@ class _ManageWardAnnouncementsScreenState extends State<ManageWardAnnouncementsS
                           }
                         });
                       },
-                      activeColor: Colors.cyanAccent,
+                      activeThumbColor: Colors.cyanAccent,
                       tileColor: Colors.white.withAlpha(15),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     ),
@@ -323,7 +324,7 @@ class _ManageWardAnnouncementsScreenState extends State<ManageWardAnnouncementsS
               padding: const EdgeInsets.all(16.0),
               child: Text(
                 'Your Posted Announcements',
-                style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
             Expanded(

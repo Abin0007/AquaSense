@@ -149,9 +149,9 @@ class _HydrationSetupScreenState extends State<HydrationSetupScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
               child: Column(
                 children: [
@@ -172,7 +172,7 @@ class _HydrationSetupScreenState extends State<HydrationSetupScreen> {
                       activeTrackColor: const Color(0xFF00E5FF),
                       inactiveTrackColor: Colors.white10,
                       thumbColor: const Color(0xFF00E5FF),
-                      overlayColor: const Color(0xFF00E5FF).withOpacity(0.2),
+                      overlayColor: const Color(0xFF00E5FF).withValues(alpha: 0.2),
                       trackHeight: 2,
                     ),
                     child: Slider(
@@ -195,9 +195,9 @@ class _HydrationSetupScreenState extends State<HydrationSetupScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
               child: Row(
                 children: [
@@ -283,9 +283,9 @@ class _HydrationSetupScreenState extends State<HydrationSetupScreen> {
           duration: 200.ms,
           padding: const EdgeInsets.symmetric(vertical: 24),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.transparent : Colors.white.withOpacity(0.05),
+            color: isSelected ? Colors.transparent : Colors.white.withValues(alpha: 0.05),
             border: Border.all(
-              color: isSelected ? const Color(0xFF00E5FF) : Colors.white.withOpacity(0.1),
+              color: isSelected ? const Color(0xFF00E5FF) : Colors.white.withValues(alpha: 0.1),
               width: isSelected ? 2 : 1,
             ),
             borderRadius: BorderRadius.circular(24),

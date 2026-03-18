@@ -56,9 +56,11 @@ class ReceiptScreen extends StatelessWidget {
 
     final xFile = XFile(file.path, mimeType: 'application/pdf');
 
-    await Share.shareXFiles(
-      [xFile],
-      text: 'Here is my payment receipt for AquaSense.',
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [xFile],
+        text: 'Here is my payment receipt for AquaSense.',
+      ),
     );
   }
 

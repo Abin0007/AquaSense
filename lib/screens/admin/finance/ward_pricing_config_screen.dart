@@ -216,7 +216,7 @@ class _WardPricingConfigScreenState extends State<WardPricingConfigScreen> {
                           const SizedBox(height: 8),
                           ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.cyan.withOpacity(0.2),
+                              backgroundColor: Colors.cyan.withValues(alpha: 0.2),
                               foregroundColor: Colors.cyanAccent,
                               elevation: 0,
                               shape: RoundedRectangleBorder(

@@ -7,7 +7,7 @@ import '../../../services/iot_service.dart';
 import '../../supervisor/iot/incident_detail_screen.dart';
 
 class InfrastructureReportsScreen extends StatelessWidget {
-  const InfrastructureReportsScreen({Key? key}) : super(key: key);
+  const InfrastructureReportsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -42,20 +42,18 @@ class InfrastructureReportsScreen extends StatelessWidget {
               final isOngoing = log.status != 'Resolved';
 
               // Calculate Duration
-              final duration = log.resolvedAt != null
-                  ? log.resolvedAt!.difference(log.startTime)
-                  : null;
+              final duration = log.resolvedAt?.difference(log.startTime);
 
               final durationText = duration != null
                   ? "${duration.inHours}h ${duration.inMinutes.remainder(60)}m to resolve"
                   : "Ongoing...";
 
               return Card(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 margin: const EdgeInsets.only(bottom: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
-                  side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                  side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
                 ),
                 // ✅ WRAPPED IN INKWELL TO ALLOW TAPPING
                 child: InkWell(
@@ -87,7 +85,7 @@ class InfrastructureReportsScreen extends StatelessWidget {
                                       fontWeight: FontWeight.bold
                                   )
                               ),
-                              backgroundColor: isOngoing ? Colors.redAccent.withOpacity(0.1) : Colors.greenAccent.withOpacity(0.1),
+                              backgroundColor: isOngoing ? Colors.redAccent.withValues(alpha: 0.1) : Colors.greenAccent.withValues(alpha: 0.1),
                               side: BorderSide(color: isOngoing ? Colors.redAccent : Colors.greenAccent),
                             ),
                           ],

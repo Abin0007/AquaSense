@@ -6,7 +6,7 @@ import '../../../models/leak_log_model.dart';
 class IncidentDetailScreen extends StatelessWidget {
   final LeakLog log;
 
-  const IncidentDetailScreen({Key? key, required this.log}) : super(key: key);
+  const IncidentDetailScreen({super.key, required this.log});
 
   // --- CORRECTED: Reliable Google Maps URL ---
   void _launchMap(double lat, double lng) async {
@@ -63,7 +63,7 @@ class IncidentDetailScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(20)),
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(20)),
               child: Column(
                 children: [
                   _buildTimelineNode(title: "Leak Detected", time: log.startTime, isFirst: true, isDone: true, icon: Icons.warning_amber_rounded, color: Colors.redAccent),
@@ -118,8 +118,8 @@ class IncidentDetailScreen extends StatelessWidget {
         children: [
           Column(
             children: [
-              Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: isDone ? color.withOpacity(0.2) : Colors.white10, shape: BoxShape.circle), child: Icon(icon, size: 16, color: isDone ? color : Colors.white30)),
-              if (!isLast) Expanded(child: Container(width: 2, color: isDone ? color.withOpacity(0.5) : Colors.white10, margin: const EdgeInsets.symmetric(vertical: 4))),
+              Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: isDone ? color.withValues(alpha: 0.2) : Colors.white10, shape: BoxShape.circle), child: Icon(icon, size: 16, color: isDone ? color : Colors.white30)),
+              if (!isLast) Expanded(child: Container(width: 2, color: isDone ? color.withValues(alpha: 0.5) : Colors.white10, margin: const EdgeInsets.symmetric(vertical: 4))),
             ],
           ),
           const SizedBox(width: 16),
@@ -135,7 +135,7 @@ class IncidentDetailScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: onTapLoc,
-                      child: Row(children: [const Icon(Icons.map, color: Colors.cyanAccent, size: 14), const SizedBox(width: 4), const Text("View GPS Coordinates", style: TextStyle(color: Colors.cyanAccent, fontSize: 12, decoration: TextDecoration.underline, decorationColor: Colors.cyanAccent))]),
+                      child: const Row(children: [Icon(Icons.map, color: Colors.cyanAccent, size: 14), SizedBox(width: 4), Text("View GPS Coordinates", style: TextStyle(color: Colors.cyanAccent, fontSize: 12, decoration: TextDecoration.underline, decorationColor: Colors.cyanAccent))]),
                     )
                   ]
                 ],

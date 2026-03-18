@@ -56,6 +56,7 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> w
       _titleController.clear();
       _messageController.clear();
       _formKey.currentState?.reset();
+      if (!mounted) return;
       FocusScope.of(context).unfocus();
 
       scaffoldMessenger.showSnackBar(
@@ -76,9 +77,9 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> w
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: const Color(0xFF152D4E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: _dangerRed.withOpacity(0.5))),
-        title: Row(
-          children: const [
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: _dangerRed.withValues(alpha: 0.5))),
+        title: const Row(
+          children: [
             Icon(Icons.delete_forever, color: _dangerRed),
             SizedBox(width: 8),
             Text('Delete Broadcast?', style: TextStyle(color: Colors.white, fontSize: 18)),
@@ -139,21 +140,21 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> w
                 margin: const EdgeInsets.all(20),
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.03),
+                  color: Colors.white.withValues(alpha: 0.03),
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withOpacity(0.08)),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 20, spreadRadius: 5)],
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 20, spreadRadius: 5)],
                 ),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Row(
+                      const Row(
                         children: [
-                          const Icon(Icons.campaign, color: _cyanCustom, size: 24),
-                          const SizedBox(width: 10),
-                          const Text("NEW BROADCAST", style: TextStyle(color: _cyanCustom, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                          Icon(Icons.campaign, color: _cyanCustom, size: 24),
+                          SizedBox(width: 10),
+                          Text("NEW BROADCAST", style: TextStyle(color: _cyanCustom, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
                         ],
                       ).animate().fadeIn(delay: 100.ms),
                       const SizedBox(height: 20),
@@ -187,7 +188,7 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> w
                           foregroundColor: Colors.black,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           elevation: 8,
-                          shadowColor: _cyanCustom.withOpacity(0.4),
+                          shadowColor: _cyanCustom.withValues(alpha: 0.4),
                         ),
                         child: _isSubmitting
                             ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 3, color: Colors.black))
@@ -236,7 +237,7 @@ class _ManageAnnouncementsScreenState extends State<ManageAnnouncementsScreen> w
                                 right: 8,
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: _dashStart.withOpacity(0.8),
+                                    color: _dashStart.withValues(alpha: 0.8),
                                     shape: BoxShape.circle,
                                   ),
                                   child: IconButton(

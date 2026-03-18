@@ -85,10 +85,10 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         hintStyle: const TextStyle(color: Colors.white54),
         prefixIcon: Icon(icon, color: _cyanCustom),
         filled: true,
-        fillColor: Colors.black.withOpacity(0.3),
+        fillColor: Colors.black.withValues(alpha: 0.3),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: Colors.white.withOpacity(0.1))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: _cyanCustom)),
       ),
     );
@@ -106,23 +106,29 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: const Color(0xFF152D4E),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.white.withOpacity(0.1))),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
               title: const Text('Update User Role', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: availableRoles.map((String role) => Theme(
-                  data: ThemeData(unselectedWidgetColor: Colors.white54),
-                  child: RadioListTile<String>(
-                    title: Text(role.toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, letterSpacing: 1.0)),
-                    value: role,
+                children: [
+                  RadioGroup<String>(
                     groupValue: roleToUpdate,
                     onChanged: (String? value) {
                       setDialogState(() => roleToUpdate = value);
                     },
-                    activeColor: _cyanCustom,
-                    controlAffinity: ListTileControlAffinity.trailing,
+                    child: Column(
+                      children: availableRoles.map((String role) => Theme(
+                        data: ThemeData(unselectedWidgetColor: Colors.white54),
+                        child: RadioListTile<String>(
+                          title: Text(role.toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, letterSpacing: 1.0)),
+                          value: role,
+                          activeColor: _cyanCustom,
+                          controlAffinity: ListTileControlAffinity.trailing,
+                        ),
+                      )).toList(),
+                    ),
                   ),
-                )).toList(),
+                ],
               ),
               actions: [
                 TextButton(
@@ -167,7 +173,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
             return AlertDialog(
               backgroundColor: const Color(0xFF152D4E),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.white.withOpacity(0.1))),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
               title: const Text('Assign Operations Ward', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               content: SingleChildScrollView(
                 child: Column(
@@ -183,7 +189,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                                 hintText: "Search State",
                                 hintStyle: const TextStyle(color: Colors.white54),
                                 filled: true,
-                                fillColor: Colors.black.withOpacity(0.2),
+                                fillColor: Colors.black.withValues(alpha: 0.2),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                               )
                           ),
@@ -219,7 +225,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                                   hintText: "Search District",
                                   hintStyle: const TextStyle(color: Colors.white54),
                                   filled: true,
-                                  fillColor: Colors.black.withOpacity(0.2),
+                                  fillColor: Colors.black.withValues(alpha: 0.2),
                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                                 )
                             ),
@@ -253,7 +259,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                                   hintText: "Search Ward",
                                   hintStyle: const TextStyle(color: Colors.white54),
                                   filled: true,
-                                  fillColor: Colors.black.withOpacity(0.2),
+                                  fillColor: Colors.black.withValues(alpha: 0.2),
                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                                 )
                             ),
@@ -286,7 +292,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                   style: ElevatedButton.styleFrom(
                       backgroundColor: _cyanCustom,
                       foregroundColor: Colors.black,
-                      disabledBackgroundColor: Colors.white.withOpacity(0.1),
+                      disabledBackgroundColor: Colors.white.withValues(alpha: 0.1),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
                   ),
                   child: const Text('ASSIGN WARD', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -308,9 +314,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: const Color(0xFF152D4E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: _dangerRed.withOpacity(0.5))),
-        title: Row(
-          children: const [
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: _dangerRed.withValues(alpha: 0.5))),
+        title: const Row(
+          children: [
             Icon(Icons.warning_amber_rounded, color: _dangerRed),
             SizedBox(width: 8),
             Text('Flag for Deletion?', style: TextStyle(color: Colors.white, fontSize: 18)),
@@ -397,7 +403,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                           if (snapshot.hasData && snapshot.data!.exists) {
                             final userData = UserData.fromFirestore(snapshot.data!);
                             final dataMap = snapshot.data!.data() as Map<String, dynamic>?;
-                            final bool alreadyFlagged = dataMap?.containsKey('deletionRequested') ?? false && dataMap!['deletionRequested'] == true;
+                            final bool alreadyFlagged =
+                              (dataMap?.containsKey('deletionRequested') ?? false) &&
+                              dataMap?['deletionRequested'] == true;
 
                             if (userData.role == 'admin') return const SizedBox(width: 48);
 
@@ -433,7 +441,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
                     final userData = UserData.fromFirestore(snapshot.data!);
                     final dataMap = snapshot.data!.data() as Map<String, dynamic>?;
-                    final bool isFlaggedForDeletion = dataMap?.containsKey('deletionRequested') ?? false && dataMap!['deletionRequested'] == true;
+                    final bool isFlaggedForDeletion =
+                      (dataMap?.containsKey('deletionRequested') ?? false) &&
+                      dataMap?['deletionRequested'] == true;
                     final roleColor = _getRoleColor(userData.role);
 
                     return SingleChildScrollView(
@@ -450,12 +460,12 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                                 padding: const EdgeInsets.all(16),
                                 margin: const EdgeInsets.only(bottom: 24),
                                 decoration: BoxDecoration(
-                                    color: _dangerRed.withOpacity(0.15),
+                                    color: _dangerRed.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: _dangerRed.withOpacity(0.5))
+                                    border: Border.all(color: _dangerRed.withValues(alpha: 0.5))
                                 ),
-                                child: Row(
-                                  children: const [
+                                child: const Row(
+                                  children: [
                                     Icon(Icons.warning_amber_rounded, color: _dangerRed, size: 28),
                                     SizedBox(width: 16),
                                     Expanded(child: Text('This user account is currently flagged for permanent deletion.', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, height: 1.4))),
@@ -467,9 +477,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.03),
+                              color: Colors.white.withValues(alpha: 0.03),
                               borderRadius: BorderRadius.circular(24),
-                              border: Border.all(color: Colors.white.withOpacity(0.05)),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                             ),
                             child: Column(
                               children: [
@@ -498,7 +508,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                               children: [
                                 const Text("ADMINISTRATIVE ACTIONS", style: TextStyle(color: _cyanCustom, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
                                 const SizedBox(width: 12),
-                                Expanded(child: Container(height: 1, color: _cyanCustom.withOpacity(0.3))),
+                                Expanded(child: Container(height: 1, color: _cyanCustom.withValues(alpha: 0.3))),
                               ],
                             ).animate().fadeIn(delay: 200.ms),
                             const SizedBox(height: 16),
@@ -550,8 +560,8 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(colors: [roleColor, roleColor.withOpacity(0.2)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-            boxShadow: [BoxShadow(color: roleColor.withOpacity(0.3), blurRadius: 20, spreadRadius: 2)],
+            gradient: LinearGradient(colors: [roleColor, roleColor.withValues(alpha: 0.2)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+            boxShadow: [BoxShadow(color: roleColor.withValues(alpha: 0.3), blurRadius: 20, spreadRadius: 2)],
           ),
           child: CircleAvatar(
             radius: 50,
@@ -568,7 +578,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(color: roleColor.withOpacity(0.15), borderRadius: BorderRadius.circular(20), border: Border.all(color: roleColor.withOpacity(0.5))),
+          decoration: BoxDecoration(color: roleColor.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20), border: Border.all(color: roleColor.withValues(alpha: 0.5))),
           child: Text(userData.role.toUpperCase(), style: TextStyle(color: roleColor, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
         ),
       ],
@@ -580,7 +590,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       children: [
         Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(8)),
           child: Icon(icon, color: _cyanCustom, size: 18),
         ),
         const SizedBox(width: 16),
@@ -611,15 +621,15 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.blueAccent.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(color: Colors.blueAccent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
               child: Icon(icon, color: Colors.blueAccent, size: 24),
             ),
             const SizedBox(width: 16),

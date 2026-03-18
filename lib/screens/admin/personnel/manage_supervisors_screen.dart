@@ -144,7 +144,7 @@ class _ManageSupervisorsScreenState extends State<ManageSupervisorsScreen> {
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                               enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
                             ),
-                            value: selectedWardId,
+                            initialValue: selectedWardId,
                             hint: const Text('Select a Ward', style: TextStyle(color: Colors.white54)),
                             items: wards.map((doc) {
                               return DropdownMenuItem(

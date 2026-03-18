@@ -98,7 +98,7 @@ class _ViewAllConnectionRequestsScreenState
                 color: Colors.white.withAlpha(20),
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
-                  leading: Icon(Icons.person_pin_circle_outlined, color: Colors.white70), // Added an icon
+                  leading: const Icon(Icons.person_pin_circle_outlined, color: Colors.white70), // Added an icon
                   title: Text(request.userName,
                       style: const TextStyle(
                           color: Colors.white,

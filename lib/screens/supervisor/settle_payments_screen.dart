@@ -139,7 +139,7 @@ class _SettlePaymentsScreenState extends State<SettlePaymentsScreen> {
             return _buildContent(null, []);
           }
           _pendingCollections = snapshot.data!;
-          _totalCashCollected = _pendingCollections.fold(0.0, (sum, item) => sum + item.amount);
+          _totalCashCollected = _pendingCollections.fold(0.0, (total, item) => total + item.amount);
 
           return _buildContent(FirebaseAuth.instance.currentUser, _pendingCollections);
         },

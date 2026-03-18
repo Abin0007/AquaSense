@@ -176,7 +176,7 @@ class _GlobalIoTDashboardScreenState extends State<GlobalIoTDashboardScreen> {
               margin: const EdgeInsets.only(bottom: 8.0),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isLeak ? Colors.redAccent.withOpacity(0.1) : Colors.white.withOpacity(0.05),
+                color: isLeak ? Colors.redAccent.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: isLeak ? Colors.redAccent : Colors.transparent),
               ),

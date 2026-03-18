@@ -1,16 +1,11 @@
-import 'dart:io'; // Required for File
 import 'package:aquasense/models/complaint_model.dart';
 import 'package:aquasense/models/user_data.dart';
-import 'package:aquasense/services/storage_service.dart'; // Import StorageService
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; // Import ImagePicker
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:lottie/lottie.dart'; // For success dialog
-import 'package:flutter/foundation.dart'; // For debugPrint
-import 'package:flutter_animate/flutter_animate.dart'; // Ensure flutter_animate is imported
 
 class ComplaintDetailScreen extends StatefulWidget {
   final Complaint complaint;
@@ -22,8 +17,6 @@ class ComplaintDetailScreen extends StatefulWidget {
 
 class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   late Future<UserData?> _userDataFuture;
-  final StorageService _storageService = StorageService(); // Storage service instance
-  final ImagePicker _picker = ImagePicker(); // Image picker instance
   bool _isUpdating = false; // Loading state
 
   // --- Use StreamBuilder for real-time status updates ---
@@ -58,7 +51,6 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     if (_isUpdating) return; // Prevent double taps
 
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
     final supervisorId = FirebaseAuth.instance.currentUser?.uid;
 
     if (supervisorId == null) {
@@ -115,7 +107,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
           children: [
             Lottie.asset('assets/animations/success_checkmark.json', repeat: false, height: 100),
             const SizedBox(height: 16),
-            Text("Status Updated!", style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text("Status Updated!", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text("Complaint marked as '$status'.", textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
           ],
@@ -255,7 +247,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                   // --- Loading Indicator ---
                   if (_isUpdating)
                     Container(
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black.withValues(alpha: 0.6),
                       child: const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -352,7 +344,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
           style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orangeAccent,
               foregroundColor: Colors.black,
-              disabledBackgroundColor: Colors.grey.withOpacity(0.5)
+              disabledBackgroundColor: Colors.grey.withValues(alpha: 0.5)
           ),
           child: const Text('Mark as In Progress'),
         ),
@@ -363,7 +355,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
           style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
               foregroundColor: Colors.black,
-              disabledBackgroundColor: Colors.grey.withOpacity(0.5)
+              disabledBackgroundColor: Colors.grey.withValues(alpha: 0.5)
           ),
           child: const Text('Mark as Resolved'),
         ),

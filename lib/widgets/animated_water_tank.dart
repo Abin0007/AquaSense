@@ -68,7 +68,7 @@ class _AnimatedWaterTankState extends State<AnimatedWaterTank>
 
 
     return Animate(
-      effects: [FadeEffect(), ScaleEffect(curve: Curves.easeOutCubic, delay: 200.ms)],
+      effects: [const FadeEffect(), ScaleEffect(curve: Curves.easeOutCubic, delay: 200.ms)],
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +128,7 @@ class _AnimatedWaterTankState extends State<AnimatedWaterTank>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
+                    color: Colors.black.withValues(alpha: 0.4),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   )
@@ -155,7 +155,7 @@ class _AnimatedWaterTankState extends State<AnimatedWaterTank>
                     Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.white.withOpacity(0.2), Colors.white.withOpacity(0.0)],
+                          colors: [Colors.white.withValues(alpha: 0.2), Colors.white.withValues(alpha: 0.0)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),

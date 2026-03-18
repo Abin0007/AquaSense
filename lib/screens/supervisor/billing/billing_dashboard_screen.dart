@@ -75,7 +75,7 @@ class _BillingDashboardScreenState extends State<BillingDashboardScreen>
             boxShadow: [
               BoxShadow(
                 color: Colors.cyanAccent
-                    .withOpacity(0.3 + (_glowController.value * 0.4)),
+                    .withValues(alpha: 0.3 + (_glowController.value * 0.4)),
                 blurRadius: 10 + (_glowController.value * 10),
                 spreadRadius: 2 + (_glowController.value * 2),
               ),

@@ -145,7 +145,7 @@ class _AdminCashSettlementsScreenState extends State<AdminCashSettlementsScreen>
           itemBuilder: (context, index) {
             final supervisorId = groupedCollections.keys.elementAt(index);
             final collections = groupedCollections[supervisorId]!;
-            final totalAmount = collections.fold(0.0, (sum, item) => sum + item.amount);
+            final totalAmount = collections.fold(0.0, (total, item) => total + item.amount);
 
             return Card(
               color: const Color(0xFF1E303A),
@@ -192,7 +192,7 @@ class _AdminCashSettlementsScreenState extends State<AdminCashSettlementsScreen>
                         icon: const Icon(Icons.check_circle_outline),
                         label: const Text('Mark as Settled (Received Cash)'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.cyan.withOpacity(0.2),
+                          backgroundColor: Colors.cyan.withValues(alpha: 0.2),
                           foregroundColor: Colors.cyanAccent,
                           side: const BorderSide(color: Colors.cyan),
                           padding: const EdgeInsets.symmetric(vertical: 12),

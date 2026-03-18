@@ -59,7 +59,7 @@ class ComplaintListTile extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: List.generate(5, (index) => Icon(
-                      index < displayRating! ? Icons.star : Icons.star_border,
+                      index < displayRating ? Icons.star : Icons.star_border,
                       color: Colors.amber,
                       size: 18,
                     )),

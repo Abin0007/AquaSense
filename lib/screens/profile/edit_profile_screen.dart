@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:aquasense/models/user_data.dart';
 import 'package:aquasense/services/storage_service.dart';
-import 'package:aquasense/utils/auth_service.dart';
 import 'package:aquasense/widgets/custom_input.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,7 +24,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> with TickerProvid
   final _confirmPasswordController = TextEditingController();
 
   final StorageService _storageService = StorageService();
-  final AuthService _authService = AuthService();
   bool _isLoading = false;
   XFile? _imageFile;
   String? _newProfileImageUrl;

@@ -3,7 +3,6 @@ import 'package:aquasense/screens/profile/profile_screen.dart';
 import 'package:aquasense/screens/supervisor/supervisor_dashboard_home.dart';
 // *** NEW IMPORT ***
 import 'package:aquasense/screens/supervisor/billing/billing_dashboard_screen.dart';
-import 'package:aquasense/screens/supervisor/ward_management/ward_member_list_screen.dart';
 
 class SupervisorRootScreen extends StatefulWidget {
   const SupervisorRootScreen({super.key});

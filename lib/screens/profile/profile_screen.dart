@@ -88,49 +88,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _deleteAccount() async {
-    final navigator = Navigator.of(context);
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-    bool? confirmDelete = await showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF2C5364),
-        title: const Text('Delete Account?', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
-        content: const Text(
-          'This action is irreversible and will permanently delete all your data. Are you absolutely sure?',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('DELETE', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmDelete == true) {
-      try {
-        // Here you would call your AuthService method to delete the user data and account
-        // For now, we will just log out
-        await _authService.logoutUser();
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(content: Text('Account deleted successfully.'), backgroundColor: Colors.green),
-        );
-        navigator.pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const AuthWrapper()),
-              (route) => false,
-        );
-      } catch (e) {
-        scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text('Failed to delete account: $e')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

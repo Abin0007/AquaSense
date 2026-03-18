@@ -58,7 +58,7 @@ class NotificationSettingsScreen extends StatelessWidget {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: Colors.cyanAccent,
+        activeThumbColor: Colors.cyanAccent,
       ),
     );
   }

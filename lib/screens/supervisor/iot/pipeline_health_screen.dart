@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,7 +22,7 @@ const Color _dangerRed = Color(0xFFFF4B2B);
 
 class PipelineHealthScreen extends StatefulWidget {
   final String wardId;
-  const PipelineHealthScreen({Key? key, required this.wardId}) : super(key: key);
+  const PipelineHealthScreen({super.key, required this.wardId});
 
   @override
   State<PipelineHealthScreen> createState() => _PipelineHealthScreenState();
@@ -94,7 +93,7 @@ class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
                     decoration: InputDecoration(
                       labelText: "Sensor Name / ID",
                       labelStyle: const TextStyle(color: _cyanCustom),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2))),
                       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _cyanCustom)),
                       prefixIcon: const Icon(Icons.sensors, color: _cyanCustom),
                     ),
@@ -108,7 +107,7 @@ class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
                     decoration: InputDecoration(
                       labelText: "Checkpoint Name / Area",
                       labelStyle: const TextStyle(color: _cyanCustom),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2))),
                       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _cyanCustom)),
                       prefixIcon: const Icon(Icons.place, color: _cyanCustom),
                     ),
@@ -118,7 +117,7 @@ class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
                   // GPS Location Section
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
                     child: Row(
                       children: [
                         Icon(Icons.gps_fixed, color: fetchedLoc != null ? Colors.greenAccent : Colors.white54),
@@ -181,11 +180,12 @@ class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
                             'status': 'Pending Network Configuration',
                           });
                           if (mounted) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sensor Deployed Successfully!", style: TextStyle(color: Colors.black)), backgroundColor: _cyanCustom));
+                            Navigator.pop(this.context);
+                            ScaffoldMessenger.of(this.context).showSnackBar(const SnackBar(content: Text("Sensor Deployed Successfully!", style: TextStyle(color: Colors.black)), backgroundColor: _cyanCustom));
                           }
                         } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e", style: const TextStyle(color: Colors.white)), backgroundColor: _dangerRed));
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(this.context).showSnackBar(SnackBar(content: Text("Error: $e", style: const TextStyle(color: Colors.white)), backgroundColor: _dangerRed));
                         } finally {
                           setModalState(() => isSaving = false);
                         }
@@ -213,15 +213,15 @@ class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
-          color: _cyanCustom.withOpacity(0.05),
+          color: _cyanCustom.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _cyanCustom.withOpacity(0.3)),
+          border: Border.all(color: _cyanCustom.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: _cyanCustom.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: _cyanCustom.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: const Icon(Icons.add_location_alt, color: _cyanCustom, size: 28),
             ),
             const SizedBox(height: 12),
@@ -372,7 +372,7 @@ class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), shape: BoxShape.circle),
+        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), shape: BoxShape.circle),
         child: Icon(icon, color: Colors.white, size: 20),
       ),
     );
@@ -382,12 +382,12 @@ class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: isLeaking ? Colors.redAccent.withOpacity(0.15) : Colors.greenAccent.withOpacity(0.15),
-        border: Border.all(color: isLeaking ? Colors.redAccent.withOpacity(0.5) : Colors.greenAccent.withOpacity(0.5)),
+        color: isLeaking ? Colors.redAccent.withValues(alpha: 0.15) : Colors.greenAccent.withValues(alpha: 0.15),
+        border: Border.all(color: isLeaking ? Colors.redAccent.withValues(alpha: 0.5) : Colors.greenAccent.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: isLeaking ? Colors.redAccent.withOpacity(0.3) : Colors.greenAccent.withOpacity(0.3),
+            color: isLeaking ? Colors.redAccent.withValues(alpha: 0.3) : Colors.greenAccent.withValues(alpha: 0.3),
             blurRadius: 15, spreadRadius: 1,
           ),
         ],
@@ -412,9 +412,9 @@ class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,7 +423,7 @@ class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(color: accentColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(color: accentColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                 child: Icon(isOut ? Icons.arrow_downward : Icons.arrow_upward, color: accentColor, size: 14),
               ),
               const SizedBox(width: 8),
@@ -441,7 +441,7 @@ class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
                 width: 6, height: 6, margin: const EdgeInsets.only(right: 6),
                 decoration: BoxDecoration(
                   color: accentColor, shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: accentColor.withOpacity(0.6), blurRadius: 6)],
+                  boxShadow: [BoxShadow(color: accentColor.withValues(alpha: 0.6), blurRadius: 6)],
                 ),
               ).animate(onPlay: (c) => isDanger ? c.repeat() : null).fadeOut(duration: 600.ms).fadeIn(duration: 600.ms),
               Text(
@@ -466,13 +466,13 @@ class _PipelineHealthScreenState extends State<PipelineHealthScreen> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
-        child: Row(
+        child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Icon(Icons.history, color: Colors.white, size: 20),
             SizedBox(width: 8),
             Text("View Full History", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
@@ -491,7 +491,7 @@ class EmergencyWorkflowTimeline extends StatefulWidget {
   final String wardId;
   final PipelineNode node;
 
-  const EmergencyWorkflowTimeline({Key? key, required this.wardId, required this.node}) : super(key: key);
+  const EmergencyWorkflowTimeline({super.key, required this.wardId, required this.node});
 
   @override
   State<EmergencyWorkflowTimeline> createState() => _EmergencyWorkflowTimelineState();
@@ -621,9 +621,9 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withOpacity(0.1))
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.1))
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -661,7 +661,7 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
                         _buildLocationCard("Sensor 2 (Out)", widget.node.sensor2Address, widget.node.sensor2Location),
                         const SizedBox(height: 12),
                         ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(backgroundColor: _cyanCustom.withOpacity(0.2), foregroundColor: _cyanCustom),
+                          style: ElevatedButton.styleFrom(backgroundColor: _cyanCustom.withValues(alpha: 0.2), foregroundColor: _cyanCustom),
                           onPressed: () => _uploadAndProceed(context, log.logId, 'arrived'),
                           icon: const Icon(Icons.camera_alt), label: const Text("Log Arrival & Photo"),
                         ),
@@ -677,7 +677,7 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
                     isLast: true,
                     content: (log.arrivedAt != null && log.status != 'Resolved')
                         ? ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent.withOpacity(0.2), foregroundColor: Colors.greenAccent),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent.withValues(alpha: 0.2), foregroundColor: Colors.greenAccent),
                       onPressed: () => _uploadAndProceed(context, log.logId, 'resolved'),
                       icon: const Icon(Icons.check_circle), label: const Text("Upload Fix & Resolve"),
                     )
@@ -717,7 +717,7 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.08),
+          color: Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.white10),
         ),
@@ -752,10 +752,10 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
             children: [
               Container(
                 width: 20, height: 20,
-                decoration: BoxDecoration(color: nodeColor.withOpacity(0.2), shape: BoxShape.circle, border: Border.all(color: nodeColor)),
-                child: isCompleted ? const Icon(Icons.check, size: 12, color: Colors.greenAccent) : (isActive ? Container(margin: const EdgeInsets.all(4), decoration: BoxDecoration(color: _dangerRed, shape: BoxShape.circle)) : null),
+                decoration: BoxDecoration(color: nodeColor.withValues(alpha: 0.2), shape: BoxShape.circle, border: Border.all(color: nodeColor)),
+                child: isCompleted ? const Icon(Icons.check, size: 12, color: Colors.greenAccent) : (isActive ? Container(margin: const EdgeInsets.all(4), decoration: const BoxDecoration(color: _dangerRed, shape: BoxShape.circle)) : null),
               ),
-              if (!isLast) Expanded(child: Container(width: 2, color: isCompleted ? Colors.greenAccent.withOpacity(0.5) : Colors.white10, margin: const EdgeInsets.symmetric(vertical: 4))),
+              if (!isLast) Expanded(child: Container(width: 2, color: isCompleted ? Colors.greenAccent.withValues(alpha: 0.5) : Colors.white10, margin: const EdgeInsets.symmetric(vertical: 4))),
             ],
           ),
           const SizedBox(width: 16),
@@ -783,7 +783,7 @@ class _EmergencyWorkflowTimelineState extends State<EmergencyWorkflowTimeline> {
 
 class AnimatedPipelineVisualizer extends StatefulWidget {
   final bool isLeaking;
-  const AnimatedPipelineVisualizer({Key? key, required this.isLeaking}) : super(key: key);
+  const AnimatedPipelineVisualizer({super.key, required this.isLeaking});
 
   @override
   State<AnimatedPipelineVisualizer> createState() => _AnimatedPipelineVisualizerState();
@@ -822,7 +822,7 @@ class _AnimatedPipelineVisualizerState extends State<AnimatedPipelineVisualizer>
                 width: 250, height: 250,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: Colors.red.withOpacity(0.08), blurRadius: 80, spreadRadius: 20)],
+                  boxShadow: [BoxShadow(color: Colors.red.withValues(alpha: 0.08), blurRadius: 80, spreadRadius: 20)],
                 ),
               ),
             Transform.translate(
@@ -847,7 +847,7 @@ class PipelinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double pipeHeight = 45.0;
+    const double pipeHeight = 45.0;
     final double pipeY = size.height - pipeHeight - 50;
 
     final RRect pipeOuter = RRect.fromRectAndRadius(Rect.fromLTWH(20, pipeY, size.width - 40, pipeHeight), const Radius.circular(6));
@@ -869,12 +869,12 @@ class PipelinePainter extends CustomPainter {
       canvas.save();
       canvas.clipRRect(pipeOuter);
 
-      canvas.drawRRect(pipeOuter, Paint()..color = _cyanCustom.withOpacity(0.15));
+      canvas.drawRRect(pipeOuter, Paint()..color = _cyanCustom.withValues(alpha: 0.15));
 
       final Paint flowPaint = Paint()
         ..shader = const LinearGradient(
           colors: [Colors.transparent, _cyanCustom, Colors.transparent],
-        ).createShader(Rect.fromLTWH(0, 0, 150, pipeHeight));
+        ).createShader(const Rect.fromLTWH(0, 0, 150, pipeHeight));
 
       for (int i = 0; i < 3; i++) {
         double p = (progress + (i * 0.33)) % 1.0;
@@ -899,7 +899,7 @@ class PipelinePainter extends CustomPainter {
 
       canvas.drawPath(crackPath, Paint()..color = const Color(0xFF742A2A)..strokeWidth = 2..style = PaintingStyle.stroke..strokeCap=StrokeCap.round);
 
-      canvas.drawCircle(Offset(crackX + 5, pipeY), 25, Paint()..color = Colors.blue[300]!.withOpacity(0.3)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20));
+      canvas.drawCircle(Offset(crackX + 5, pipeY), 25, Paint()..color = Colors.blue[300]!.withValues(alpha: 0.3)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20));
 
       final Paint particlePaint = Paint();
       for (int i = 0; i < 60; i++) {
@@ -913,7 +913,7 @@ class PipelinePainter extends CustomPainter {
         double radius = (1.0 - p) * 3.5;
         double opacity = (1.0 - p).clamp(0.0, 1.0);
 
-        particlePaint.color = (i % 3 == 0) ? Colors.white.withOpacity(opacity) : Colors.blue[200]!.withOpacity(opacity);
+        particlePaint.color = (i % 3 == 0) ? Colors.white.withValues(alpha: opacity) : Colors.blue[200]!.withValues(alpha: opacity);
         canvas.drawCircle(Offset(dx, dy), radius, particlePaint);
       }
     }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:aquasense/models/user_data.dart';
 import 'package:aquasense/models/water_tank_model.dart';
 import 'package:aquasense/screens/announcements/announcements_screen.dart';
@@ -16,8 +15,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:rxdart/rxdart.dart';
-
-import 'package:aquasense/screens/home/components/quick_action_card.dart';
 
 // IoT IMPORTS
 import 'package:aquasense/models/pipeline_node_model.dart';
@@ -176,7 +173,7 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
         context: context,
         builder: (dialogContext) => AlertDialog(
           backgroundColor: const Color(0xFF152D4E),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withOpacity(0.5), width: 1.5)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: color.withValues(alpha: 0.5), width: 1.5)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -352,9 +349,9 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
                 ? Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.redAccent.withOpacity(0.9),
+                color: Colors.redAccent.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [BoxShadow(color: Colors.redAccent.withOpacity(0.4), blurRadius: 15, spreadRadius: 2)],
+                boxShadow: [BoxShadow(color: Colors.redAccent.withValues(alpha: 0.4), blurRadius: 15, spreadRadius: 2)],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,17 +379,17 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
             ).animate().fadeIn().slideY(begin: 0.1)
                 : Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.transparent)),
-              child: Row(
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.transparent)),
+              child: const Row(
                 children: [
-                  const Icon(Icons.check_circle, color: Colors.greenAccent), const SizedBox(width: 16),
+                  Icon(Icons.check_circle, color: Colors.greenAccent), SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [Text("Ward Pipeline Status", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)), Text("System Normal", style: TextStyle(color: Colors.greenAccent))],
+                      children: [Text("Ward Pipeline Status", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)), Text("System Normal", style: TextStyle(color: Colors.greenAccent))],
                     ),
                   ),
-                  const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                  Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
                 ],
               ),
             ).animate().fadeIn(),
@@ -449,12 +446,12 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               )
@@ -465,7 +462,7 @@ class _SupervisorDashboardHomeState extends State<SupervisorDashboardHome> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+                color: color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 22),

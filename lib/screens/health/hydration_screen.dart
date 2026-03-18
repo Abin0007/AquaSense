@@ -1,9 +1,6 @@
 import 'package:aquasense/models/hydration_log.dart';
-import 'package:aquasense/models/user_data.dart';
 import 'package:aquasense/services/hydration_service.dart';
 import 'package:aquasense/screens/health/hydration_setup_screen.dart'; // Import setup screen
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -94,7 +91,7 @@ class _HydrationScreenState extends State<HydrationScreen> {
                           CircularProgressIndicator(
                             value: 1.0,
                             strokeWidth: 20,
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                           ),
                           // Animated Value Ring
                           TweenAnimationBuilder<double>(
@@ -163,9 +160,9 @@ class _HydrationScreenState extends State<HydrationScreen> {
                       height: 220,
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
+                        color: Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.white.withOpacity(0.1)),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,7 +232,7 @@ class _HydrationScreenState extends State<HydrationScreen> {
                                             backDrawRodData: BackgroundBarChartRodData(
                                               show: true,
                                               toY: (log.dailyGoal > 0 ? log.dailyGoal.toDouble() : 2500.0) + 500, // Dynamic max scale
-                                              color: Colors.white.withOpacity(0.05),
+                                              color: Colors.white.withValues(alpha: 0.05),
                                             ),
                                             borderRadius: BorderRadius.circular(6),
                                           ),
@@ -271,7 +268,7 @@ class _HydrationScreenState extends State<HydrationScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text("Added $amount ml", style: GoogleFonts.poppins()),
-                  backgroundColor: const Color(0xFF00E5FF).withOpacity(0.8),
+                  backgroundColor: const Color(0xFF00E5FF).withValues(alpha: 0.8),
                   duration: const Duration(seconds: 1),
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -291,12 +288,12 @@ class _HydrationScreenState extends State<HydrationScreen> {
         width: 90,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.08),
+            color: Colors.white.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               )

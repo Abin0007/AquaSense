@@ -9,7 +9,7 @@ import '../../../utils/page_transition.dart';
 import 'incident_detail_screen.dart'; // Ensure this file exists from the previous step
 
 class PipelineHistoryScreen extends StatefulWidget {
-  const PipelineHistoryScreen({Key? key}) : super(key: key);
+  const PipelineHistoryScreen({super.key});
 
   @override
   State<PipelineHistoryScreen> createState() => _PipelineHistoryScreenState();
@@ -42,17 +42,17 @@ class _PipelineHistoryScreenState extends State<PipelineHistoryScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
-              child: Column(
+              child: const Column(
                 children: [
-                  const Text("SYSTEM VARIANCE", style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-                  const SizedBox(height: 8),
-                  const Text("0.0 L/min", style: TextStyle(color: Color(0xFF00F2FF), fontSize: 32, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  const Text("Pipeline integrity actively monitored.", style: TextStyle(color: Colors.greenAccent, fontSize: 12)),
+                  Text("SYSTEM VARIANCE", style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                  SizedBox(height: 8),
+                  Text("0.0 L/min", style: TextStyle(color: Color(0xFF00F2FF), fontSize: 32, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 4),
+                  Text("Pipeline integrity actively monitored.", style: TextStyle(color: Colors.greenAccent, fontSize: 12)),
                 ],
               ),
             ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.2),
@@ -80,11 +80,11 @@ class _PipelineHistoryScreenState extends State<PipelineHistoryScreen> {
                     show: true,
                     drawVerticalLine: false,
                     horizontalInterval: 10,
-                    getDrawingHorizontalLine: (value) => FlLine(color: Colors.white10, strokeWidth: 1),
+                    getDrawingHorizontalLine: (value) => const FlLine(color: Colors.white10, strokeWidth: 1),
                   ),
                   titlesData: FlTitlesData(
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
@@ -121,8 +121,8 @@ class _PipelineHistoryScreenState extends State<PipelineHistoryScreen> {
                       color: const Color(0xFF00F2FF),
                       barWidth: 3,
                       isStrokeCapRound: true,
-                      dotData: FlDotData(show: false),
-                      belowBarData: BarAreaData(show: true, color: const Color(0xFF00F2FF).withOpacity(0.1)),
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(show: true, color: const Color(0xFF00F2FF).withValues(alpha: 0.1)),
                     ),
                     // FLOW OUT (White/Grey - Overlapping)
                     LineChartBarData(
@@ -134,7 +134,7 @@ class _PipelineHistoryScreenState extends State<PipelineHistoryScreen> {
                       barWidth: 2,
                       dashArray: [5, 5],
                       isStrokeCapRound: true,
-                      dotData: FlDotData(show: false),
+                      dotData: const FlDotData(show: false),
                     ),
                   ],
                 ),
@@ -144,11 +144,11 @@ class _PipelineHistoryScreenState extends State<PipelineHistoryScreen> {
             const SizedBox(height: 40),
 
             // --- INCIDENT HISTORY HEADER ---
-            Row(
+            const Row(
               children: [
-                const Icon(Icons.history_edu, color: Colors.white54, size: 20),
-                const SizedBox(width: 8),
-                const Text(
+                Icon(Icons.history_edu, color: Colors.white54, size: 20),
+                SizedBox(width: 8),
+                Text(
                   "INCIDENT HISTORY",
                   style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2),
                 ),
@@ -172,9 +172,9 @@ class _PipelineHistoryScreenState extends State<PipelineHistoryScreen> {
                   return Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.02),
+                      color: Colors.white.withValues(alpha: 0.02),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withOpacity(0.05)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                     ),
                     child: const Center(
                       child: Text("No incidents recorded.", style: TextStyle(color: Colors.white54)),
@@ -217,7 +217,7 @@ class _PipelineHistoryScreenState extends State<PipelineHistoryScreen> {
     final Color statusColor = isResolved ? Colors.greenAccent : const Color(0xFFFF4B2B);
 
     // Calculate dynamic duration
-    final Duration? duration = log.resolvedAt != null ? log.resolvedAt!.difference(log.startTime) : null;
+    final Duration? duration = log.resolvedAt?.difference(log.startTime);
     final String durationText = duration != null
         ? "${duration.inHours}h ${duration.inMinutes.remainder(60)}m to resolve"
         : "Ongoing investigation...";
@@ -231,9 +231,9 @@ class _PipelineHistoryScreenState extends State<PipelineHistoryScreen> {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isResolved ? Colors.white.withOpacity(0.1) : statusColor.withOpacity(0.5)),
+          border: Border.all(color: isResolved ? Colors.white.withValues(alpha: 0.1) : statusColor.withValues(alpha: 0.5)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,9 +249,9 @@ class _PipelineHistoryScreenState extends State<PipelineHistoryScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
+                    color: statusColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: statusColor.withOpacity(0.5)),
+                    border: Border.all(color: statusColor.withValues(alpha: 0.5)),
                   ),
                   child: Text(
                     log.status.toUpperCase(),

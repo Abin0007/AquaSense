@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
-import 'package:flutter/foundation.dart'; // Import for debugPrint
+// Import for debugPrint
 
 class ReportLeakScreen extends StatefulWidget { // <-- Class Definition
   const ReportLeakScreen({super.key});
@@ -357,7 +357,7 @@ class _ReportLeakScreenState extends State<ReportLeakScreen> with TickerProvider
 
   Widget _buildDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedComplaintType,
+      initialValue: _selectedComplaintType,
       items: _complaintTypes.map((String value) {
         return DropdownMenuItem<String>(
           value: value,

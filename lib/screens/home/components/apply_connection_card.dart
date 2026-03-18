@@ -44,7 +44,7 @@ class _ApplyConnectionCardState extends State<ApplyConnectionCard>
                   boxShadow: [
                     BoxShadow(
                       color: Colors.tealAccent
-                          .withOpacity(0.3 + (_glowController.value * 0.4)),
+                          .withValues(alpha: 0.3 + (_glowController.value * 0.4)),
                       blurRadius: 10 + (_glowController.value * 10),
                       spreadRadius: 2 + (_glowController.value * 2),
                     ),

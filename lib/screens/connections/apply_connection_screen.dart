@@ -88,30 +88,18 @@ class _ApplyConnectionScreenState extends State<ApplyConnectionScreen>
         return;
       }
 
-      Position? position = await Geolocator.getLastKnownPosition();
-      position ??= await Geolocator.getCurrentPosition(
+      final position = await Geolocator.getLastKnownPosition() ?? await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.medium,
         timeLimit: const Duration(seconds: 5),
       );
 
-      // --- DEFINITIVE FIX ---
-      // This structure correctly handles the nullable 'position' object.
       if (mounted) {
-        final localPosition = position; // Create a local, non-nullable variable
-        if (localPosition != null) {
-          setState(() {
-            _currentPosition = localPosition;
-            _locationController.text =
-            '${localPosition.latitude.toStringAsFixed(6)}, ${localPosition.longitude.toStringAsFixed(6)}';
-          });
-        } else {
-          setState(() {
-            _currentPosition = null;
-            _locationController.text = 'Could not determine location.';
-          });
-        }
+        setState(() {
+          _currentPosition = position;
+          _locationController.text =
+              '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
+        });
       }
-      // --- END OF FIX ---
 
     } catch (e) {
       if (mounted) {

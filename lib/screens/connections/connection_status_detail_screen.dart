@@ -152,7 +152,7 @@ class ConnectionStatusDetailScreen extends StatelessWidget {
                 final isLast = index == uniqueHistory.length - 1;
                 return _buildTimelineTile(statusUpdate,
                     isFirst: isFirst, isLast: isLast);
-              }).toList(),
+              }),
 
             if (request.currentStatus == 'Completed' && request.finalConnectionImageUrl != null)
               _buildCompletedSection(),
@@ -353,7 +353,7 @@ class ConnectionStatusDetailScreen extends StatelessWidget {
                     boxShadow: isFirst
                         ? [
                       BoxShadow(
-                        color: iconColor.withOpacity(0.5),
+                        color: iconColor.withValues(alpha: 0.5),
                         blurRadius: 10,
                         spreadRadius: 2,
                       ),

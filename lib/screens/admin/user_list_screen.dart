@@ -163,15 +163,15 @@ class _UserListScreenState extends State<UserListScreen> {
           hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
           prefixIcon: const Icon(Icons.search, color: _cyanCustom, size: 22),
           filled: true,
-          fillColor: Colors.white.withOpacity(0.05),
+          fillColor: Colors.white.withValues(alpha: 0.05),
           contentPadding: const EdgeInsets.symmetric(vertical: 0),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),
@@ -194,9 +194,9 @@ class _UserListScreenState extends State<UserListScreen> {
       margin: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: isSupervisor ? Colors.purpleAccent.withOpacity(0.15) : _cyanCustom.withOpacity(0.15),
+        color: isSupervisor ? Colors.purpleAccent.withValues(alpha: 0.15) : _cyanCustom.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isSupervisor ? Colors.purpleAccent.withOpacity(0.3) : _cyanCustom.withOpacity(0.3)),
+        border: Border.all(color: isSupervisor ? Colors.purpleAccent.withValues(alpha: 0.3) : _cyanCustom.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -242,14 +242,14 @@ class _UserListScreenState extends State<UserListScreen> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         leading: CircleAvatar(
-          backgroundColor: roleColor.withOpacity(0.15),
+          backgroundColor: roleColor.withValues(alpha: 0.15),
           child: Icon(_getIconForRole(userData.role), color: roleColor, size: 20),
         ),
         title: Text(
@@ -262,7 +262,7 @@ class _UserListScreenState extends State<UserListScreen> {
         ),
         trailing: Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), shape: BoxShape.circle),
+          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), shape: BoxShape.circle),
           child: const Icon(Icons.arrow_forward_ios, color: Colors.white30, size: 12),
         ),
         onTap: () {
