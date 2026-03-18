@@ -98,58 +98,55 @@ class _GlobalIoTDashboardScreenState extends State<GlobalIoTDashboardScreen> {
     );
   }
 
-  // --- SUB-WIDGET: TANK STREAM ---
+  // --- SUB-WIDGET: TANK STREAM (UPDATED) ---
   Widget _buildTankDataStream(String wardId) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: _firestore.collection('water_tanks').where('wardId', isEqualTo: wardId).snapshots(),
+    // FIX: Fetch the exact document matching the wardId (like the Supervisor app does)
+    return StreamBuilder<DocumentSnapshot>(
+      stream: _firestore.collection('water_tanks').doc(wardId).snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const LinearProgressIndicator(color: Colors.blueAccent);
         }
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        if (!snapshot.hasData || !snapshot.data!.exists) {
           return const Text('No active tanks deployed in this ward.', style: TextStyle(color: Colors.white38, fontStyle: FontStyle.italic));
         }
 
-        return Column(
-          children: snapshot.data!.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            final level = (data['level'] as num?)?.toDouble() ?? 0.0;
-            final lastUpdated = data['lastUpdated'] as Timestamp?;
-            final isLow = level < 20.0;
+        final data = snapshot.data!.data() as Map<String, dynamic>? ?? {};
+        final level = (data['level'] as num?)?.toDouble() ?? 0.0;
+        final lastUpdated = data['lastUpdated'] as Timestamp?;
+        final isLow = level < 20.0;
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: Row(
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Row(
+            children: [
+              Stack(
+                alignment: Alignment.center,
                 children: [
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      CircularProgressIndicator(
-                        value: level / 100,
-                        backgroundColor: Colors.white10,
-                        color: isLow ? Colors.redAccent : Colors.blueAccent,
-                        strokeWidth: 6,
-                      ),
-                      Text('${level.toInt()}%', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                    ],
+                  CircularProgressIndicator(
+                    value: level / 100,
+                    backgroundColor: Colors.white10,
+                    color: isLow ? Colors.redAccent : Colors.blueAccent,
+                    strokeWidth: 6,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(data['name'] ?? 'Main Tank', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        Text('Updated: ${lastUpdated != null ? DateFormat('hh:mm:ss a').format(lastUpdated.toDate()) : 'N/A'}',
-                            style: const TextStyle(color: Colors.white54, fontSize: 11)),
-                      ],
-                    ),
-                  ),
-                  if (isLow)
-                    const Icon(Icons.warning, color: Colors.redAccent, size: 20)
+                  Text('${level.toInt()}%', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                 ],
               ),
-            );
-          }).toList(),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(data['tankName'] ?? 'Main Tank', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Text('Updated: ${lastUpdated != null ? DateFormat('hh:mm:ss a').format(lastUpdated.toDate()) : 'N/A'}',
+                        style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                  ],
+                ),
+              ),
+              if (isLow)
+                const Icon(Icons.warning, color: Colors.redAccent, size: 20)
+            ],
+          ),
         );
       },
     );
