@@ -135,6 +135,14 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> with Sing
           _phoneVerificationId = verificationId;
           _showOtpDialog();
         },
+        codeAutoRetrievalTimeout: (verificationId) {
+          if (!mounted) return;
+          if (_phoneVerificationId == null) {
+            setState(() => isLoading = false);
+            _phoneVerificationId = verificationId;
+            _showOtpDialog();
+          }
+        },
         verificationFailed: (e) {
           if (!mounted) return;
           setState(() => isLoading = false);
@@ -169,7 +177,21 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> with Sing
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               const Text("Enter the 6-digit code sent to your phone.", style: TextStyle(color: Colors.white70)),
               const SizedBox(height: 20),
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: List.generate(6, (index) => OtpInput(controller: otpControllers[index], autoFocus: index == 0))),
+              Row(
+                children: List.generate(
+                  6,
+                  (index) => Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: OtpInput(
+                        controller: otpControllers[index],
+                        autoFocus: index == 0,
+                        height: 58,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ]),
           ),
           actions: [

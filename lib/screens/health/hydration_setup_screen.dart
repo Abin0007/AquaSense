@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:aquasense/services/notifications/local_notification_service.dart';
 
 class HydrationSetupScreen extends StatefulWidget {
   final VoidCallback? onCompleted;
@@ -40,6 +41,9 @@ class _HydrationSetupScreenState extends State<HydrationSetupScreen> {
           'bedTime': bedStr,
           'hydrationGoal': _calculatedGoal,
         });
+
+        await LocalNotificationService.instance
+            .scheduleHydrationRemindersForUser(user.uid);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

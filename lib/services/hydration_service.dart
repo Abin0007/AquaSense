@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:aquasense/models/hydration_log.dart';
+import 'package:aquasense/services/notifications/local_notification_service.dart';
 
 class HydrationService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -41,11 +42,14 @@ class HydrationService {
         .collection('hydration_logs')
         .doc(_todayDateId);
 
-    return _db.runTransaction((transaction) async {
+    int updatedIntake = 0;
+
+    await _db.runTransaction((transaction) async {
       final snapshot = await transaction.get(docRef);
 
       if (!snapshot.exists) {
         // Create new doc for today
+        updatedIntake = amount;
         transaction.set(docRef, {
           'currentIntake': amount,
           'dailyGoal': 2500, // Default goal
@@ -56,14 +60,22 @@ class HydrationService {
       } else {
         // Update existing
         int current = snapshot.data()!['currentIntake'] ?? 0;
+        updatedIntake = current + amount;
         transaction.update(docRef, {
-          'currentIntake': current + amount,
+          'currentIntake': updatedIntake,
           'history': FieldValue.arrayUnion([
             {'amount': amount, 'time': Timestamp.now()}
           ])
         });
       }
     });
+
+    if (updatedIntake > 0) {
+      await LocalNotificationService.instance.handleHydrationProgress(
+        userId: _userId,
+        currentIntake: updatedIntake,
+      );
+    }
   }
 
   // Fetch last 7 days for the chart

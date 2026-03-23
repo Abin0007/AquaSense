@@ -9,6 +9,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:aquasense/services/notifications/local_notification_service.dart';
+import 'package:aquasense/services/notifications/push_notification_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -69,6 +71,7 @@ class AuthService {
         'wardId': wardId,
         'phoneNumber': phoneNumber,
         'isPhoneVerified': true,
+        'isSystemUser': false,
         'createdAt': FieldValue.serverTimestamp(),
         'hasActiveConnection': false,
         'profileImageUrl': null,
@@ -79,6 +82,10 @@ class AuthService {
       });
 
       await batch.commit();
+
+        await PushNotificationService.instance.registerDeviceTokenForUser(user);
+        await LocalNotificationService.instance
+          .scheduleHydrationRemindersForUser(user.uid);
 
       return user;
     } on FirebaseAuthException catch (e) {
@@ -115,12 +122,17 @@ class AuthService {
             'name': user.displayName ?? 'Google User',
             'email': user.email,
             'role': 'citizen',
+            'isSystemUser': false,
             'createdAt': FieldValue.serverTimestamp(),
             'hasActiveConnection': false,
             // ✅ ADDED: Get profile picture from Google account
             'profileImageUrl': user.photoURL,
           });
         }
+
+        await PushNotificationService.instance.registerDeviceTokenForUser(user);
+        await LocalNotificationService.instance
+            .scheduleHydrationRemindersForUser(user.uid);
       }
       return user;
     } catch (e) {
@@ -155,10 +167,15 @@ class AuthService {
             'name': appleCredential.givenName ?? 'Apple User',
             'email': user.email,
             'role': 'citizen',
+            'isSystemUser': false,
             'createdAt': FieldValue.serverTimestamp(),
             'profileImageUrl': null, // Apple does not provide a photo URL
           });
         }
+
+        await PushNotificationService.instance.registerDeviceTokenForUser(user);
+        await LocalNotificationService.instance
+            .scheduleHydrationRemindersForUser(user.uid);
       }
       return user;
     } catch (e) {
@@ -188,13 +205,18 @@ class AuthService {
     required Function(PhoneAuthCredential credential) verificationCompleted,
     required Function(String verificationId, int? resendToken) codeSent,
     required Function(FirebaseAuthException e) verificationFailed,
+    Function(String verificationId)? codeAutoRetrievalTimeout,
   }) async {
     await _auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
       verificationCompleted: verificationCompleted,
       verificationFailed: verificationFailed,
       codeSent: codeSent,
-      codeAutoRetrievalTimeout: (String verificationId) {},
+      codeAutoRetrievalTimeout: (String verificationId) {
+        if (codeAutoRetrievalTimeout != null) {
+          codeAutoRetrievalTimeout(verificationId);
+        }
+      },
     );
   }
 
@@ -212,8 +234,17 @@ class AuthService {
       } else {
         throw 'No user is currently signed in to link the phone number.';
       }
-    } on FirebaseAuthException {
-      throw 'Invalid OTP or the code has expired. Please request a new one.';
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'credential-already-in-use':
+          throw 'This phone number is already linked to another account.';
+        case 'invalid-verification-code':
+          throw 'Invalid OTP. Please check the code and try again.';
+        case 'session-expired':
+          throw 'OTP session expired. Please request a new code.';
+        default:
+          throw e.message ?? 'Failed to verify OTP. (${e.code})';
+      }
     }
   }
 
@@ -246,7 +277,14 @@ class AuthService {
         throw FirebaseAuthException(code: 'email-not-verified');
       }
 
-      return refreshedUser;
+        if (refreshedUser != null) {
+        await PushNotificationService.instance
+          .registerDeviceTokenForUser(refreshedUser);
+        await LocalNotificationService.instance
+          .scheduleHydrationRemindersForUser(refreshedUser.uid);
+        }
+
+        return refreshedUser;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found' ||
           e.code == 'wrong-password' ||
@@ -263,7 +301,24 @@ class AuthService {
   }
 
   Future<void> logoutUser() async {
+    final currentUser = _auth.currentUser;
+    try {
+      await PushNotificationService.instance.removeDeviceTokenForUser(currentUser);
+    } catch (e) {
+      debugPrint("FCM Token Removal Error: $e");
+    }
+
     await _auth.signOut();
-    await _googleSignIn.signOut();
+    try {
+      // ✅ FIX: Use disconnect() instead of signOut() to fully clear the Google session token.
+      // This prevents the Google Sign-In SDK from hanging on subsequent login attempts.
+      if (await _googleSignIn.isSignedIn()) {
+        await _googleSignIn.disconnect();
+      }
+    } catch (e) {
+      debugPrint("Google Disconnect Error: $e");
+      // Fallback if disconnect fails for some reason
+      await _googleSignIn.signOut();
+    }
   }
 }

@@ -147,9 +147,9 @@ class _HydrationScreenState extends State<HydrationScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        _buildGlassButton(100, "Sip"),
-                        _buildGlassButton(250, "Glass"),
-                        _buildGlassButton(500, "Bottle"),
+                        _buildGlassButton(100, "Sip", Icons.local_cafe),
+                        _buildGlassButton(250, "Glass", Icons.local_drink),
+                        _buildGlassButton(500, "Bottle", Icons.sports_bar),
                       ].animate(interval: 100.ms).fadeIn().slideY(begin: 0.5),
                     ),
 
@@ -259,7 +259,7 @@ class _HydrationScreenState extends State<HydrationScreen> {
     );
   }
 
-  Widget _buildGlassButton(int amount, String label) {
+  Widget _buildGlassButton(int amount, String label, IconData icon) {
     return InkWell(
       onTap: () async {
         try {
@@ -301,10 +301,14 @@ class _HydrationScreenState extends State<HydrationScreen> {
         ),
         child: Column(
           children: [
-            Icon(Icons.add_circle_outline, color: accentCyan, size: 28),
+            Icon(icon, color: accentCyan, size: 28),
             const SizedBox(height: 8),
-            Text("+$amount", style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
-            Text("ml", style: GoogleFonts.poppins(color: Colors.white38, fontSize: 10)),
+            Text("+$amount ml",
+                style: GoogleFonts.poppins(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 2),
+            Text(label,
+                style: GoogleFonts.poppins(color: Colors.white38, fontSize: 10)),
           ],
         ),
       ),

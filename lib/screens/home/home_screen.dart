@@ -255,11 +255,19 @@ class _HomeScreenState extends State<HomeScreen> {
           .collection('users')
           .where('wardId', isEqualTo: wardId)
           .where('role', isEqualTo: 'supervisor')
-          .limit(1)
           .get();
 
       if (supervisorQuery.docs.isNotEmpty) {
-        supervisor = UserData.fromFirestore(supervisorQuery.docs.first);
+        final candidates = supervisorQuery.docs
+            .map(UserData.fromFirestore)
+            .toList();
+        final filtered = candidates.where((user) {
+          final email = user.email.toLowerCase();
+          final hasPhone = (user.phoneNumber ?? '').trim().isNotEmpty;
+          final looksLikeDevice = email.startsWith('esp32_') || email.contains('sensor');
+          return hasPhone && !looksLikeDevice && !user.isSystemUser;
+        }).toList();
+        supervisor = filtered.isNotEmpty ? filtered.first : candidates.first;
       }
     } catch (e) {
       if (!mounted) return;

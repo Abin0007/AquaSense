@@ -12,6 +12,7 @@ class UserData {
   final bool hasActiveConnection;
   final String? profileImageUrl;
   final Timestamp? lastReadAnnouncementsTimestamp;
+  final bool isSystemUser;
 
   // --- HYDRATION MODULE FIELDS ---
   final int? hydrationGoal;
@@ -32,6 +33,7 @@ class UserData {
     this.hasActiveConnection = false,
     this.profileImageUrl,
     this.lastReadAnnouncementsTimestamp,
+    this.isSystemUser = false,
     this.hydrationGoal,
     this.wakeUpTime,
     this.bedTime,
@@ -53,6 +55,7 @@ class UserData {
       hasActiveConnection: data['hasActiveConnection'] ?? false,
       profileImageUrl: data['profileImageUrl'],
       lastReadAnnouncementsTimestamp: data['lastReadAnnouncementsTimestamp'],
+      isSystemUser: data['isSystemUser'] ?? false,
       hydrationGoal: data['hydrationGoal'],
       wakeUpTime: data['wakeUpTime'],
       bedTime: data['bedTime'],
@@ -73,6 +76,7 @@ class UserData {
     bool? hasActiveConnection,
     String? profileImageUrl,
     Timestamp? lastReadAnnouncementsTimestamp,
+    bool? isSystemUser,
     int? hydrationGoal,
     String? wakeUpTime,
     String? bedTime,
@@ -91,6 +95,7 @@ class UserData {
       hasActiveConnection: hasActiveConnection ?? this.hasActiveConnection,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       lastReadAnnouncementsTimestamp: lastReadAnnouncementsTimestamp ?? this.lastReadAnnouncementsTimestamp,
+      isSystemUser: isSystemUser ?? this.isSystemUser,
       hydrationGoal: hydrationGoal ?? this.hydrationGoal,
       wakeUpTime: wakeUpTime ?? this.wakeUpTime,
       bedTime: bedTime ?? this.bedTime,

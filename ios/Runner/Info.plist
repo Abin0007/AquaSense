@@ -59,6 +59,11 @@
        <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
 
+    <key>UIBackgroundModes</key>
+    <array>
+       <string>remote-notification</string>
+    </array>
+
     <!-- Permissions for Geo-tagging Complaints and New Connections -->
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>This app needs access to location to report the exact location of water-related issues and new connection requests.</string>

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+// ✅ NEW: Import AuthService to properly handle Google Disconnect
+import 'package:aquasense/utils/auth_service.dart';
+
 // --- Import all Admin Modules ---
 // Personnel
 import 'package:aquasense/screens/admin/personnel/manage_supervisors_screen.dart';
@@ -12,12 +15,12 @@ import 'package:aquasense/screens/admin/finance/admin_cash_settlements_screen.da
 // Infrastructure
 import 'package:aquasense/screens/admin/infrastructure/manage_wards_screen.dart';
 import 'package:aquasense/screens/admin/iot/infrastructure_reports_screen.dart';
-import 'package:aquasense/screens/admin/iot/global_iot_dashboard_screen.dart'; // ✅ NEW IMPORT
+import 'package:aquasense/screens/admin/iot/global_iot_dashboard_screen.dart';
 // Civic
 import 'package:aquasense/screens/admin/view_all_complaints_screen.dart';
 import 'package:aquasense/screens/admin/view_all_connection_requests_screen.dart';
 import 'package:aquasense/screens/admin/manage_announcements_screen.dart';
-// Auth Auth
+// Auth
 import 'package:aquasense/screens/auth/login_screen.dart';
 
 class AdminDashboard extends StatefulWidget {
@@ -42,7 +45,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _fetchQuickStats();
   }
 
-  // Efficient count queries to save Firestore reads
+  // Efficient count queries to save Firestore reads (No stream leaks here!)
   Future<void> _fetchQuickStats() async {
     try {
       final userCount = await _firestore.collection('users').count().get();
@@ -65,13 +68,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
+  // ✅ FIXED LOGOUT: Now uses AuthService to correctly clear the Google session
   void _logout(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    if (context.mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-            (route) => false,
-      );
+    try {
+      await AuthService().logoutUser();
+
+      if (context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+              (route) => false,
+        );
+      }
+    } catch (e) {
+      debugPrint("Logout Error: $e");
     }
   }
 
@@ -134,7 +143,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
               const SizedBox(height: 20),
               _buildSectionHeader('Infrastructure & IoT', Icons.satellite_alt),
 
-              // ✅ NEW: GLOBAL IOT DASHBOARD TILE
               _buildActionTile(
                 title: 'Global Live IoT Dashboard',
                 subtitle: 'Real-time tanks and pipeline flow rates',

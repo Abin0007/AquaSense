@@ -1,11 +1,515 @@
 /* eslint-disable max-len */
 const functions = require("firebase-functions");
+const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const KNear = require("knn"); // KNN library
-const {onDocumentUpdated} = require("firebase-functions/v2/firestore");
+const {onDocumentUpdated, onDocumentCreated} = require("firebase-functions/v2/firestore");
 
 admin.initializeApp();
 const db = admin.firestore();
+
+// --- Notification Helpers ---
+const NOTIFICATION_TITLES = {
+  cashSettlement: "Cash settlement approved",
+  complaint: "New complaint reported",
+  complaintStatus: "Complaint status updated",
+  connectionApproved: "Connection approved",
+  connectionRequested: "New connection request",
+  billingReminder: "Payment reminder",
+  wardAnnouncement: "Ward announcement",
+  leakAlert: "Critical leak detected",
+  globalInfra: "Global infrastructure alert",
+  tankLevelLow: "Critical low tank level",
+  tankLevelHigh: "Tank almost full",
+};
+
+const ADMIN_TOPIC = "admins_global";
+const GLOBAL_INFRA_THRESHOLD = 3;
+const GLOBAL_INFRA_WINDOW_MINUTES = 15;
+const TANK_LEVEL_LOW_THRESHOLD = 20;
+const TANK_LEVEL_HIGH_THRESHOLD = 90;
+
+/**
+ * Sends a multicast notification if tokens are present.
+ * @param {string[]} tokens
+ * @param {string} title
+ * @param {string} body
+ * @param {Object<string, string>} data
+ */
+async function sendMulticast(tokens, title, body, data) {
+  if (!tokens || tokens.length === 0) {
+    logger.info("FCM multicast skipped: no tokens", {
+      type: data && data.type ? String(data.type) : "",
+      title,
+    });
+    return null;
+  }
+
+  logger.info("FCM multicast send attempt", {
+    tokenCount: tokens.length,
+    type: data && data.type ? String(data.type) : "",
+    title,
+  });
+
+  try {
+    const response = await admin.messaging().sendEachForMulticast({
+      tokens,
+      notification: {title, body},
+      data: buildDataPayload(data),
+    });
+
+    if (response.failureCount > 0) {
+      const failed = [];
+      response.responses.forEach((item, index) => {
+        if (!item.success) {
+          failed.push({
+            index,
+            code: item.error ? item.error.code : "unknown",
+            message: item.error ? item.error.message : "unknown",
+          });
+        }
+      });
+
+      logger.warn("FCM multicast completed with failures", {
+        successCount: response.successCount,
+        failureCount: response.failureCount,
+        failed,
+      });
+    } else {
+      logger.info("FCM multicast completed", {
+        successCount: response.successCount,
+        failureCount: response.failureCount,
+      });
+    }
+
+    return response;
+  } catch (error) {
+    logger.error("FCM multicast send error", {
+      code: error && error.code ? error.code : "unknown",
+      message: error && error.message ? error.message : String(error),
+      tokenCount: tokens.length,
+      type: data && data.type ? String(data.type) : "",
+      title,
+    });
+    throw error;
+  }
+}
+
+/**
+ * Sends a topic notification if the topic is valid.
+ * @param {string} topic
+ * @param {string} title
+ * @param {string} body
+ * @param {Object<string, string>} data
+ */
+async function sendToTopic(topic, title, body, data) {
+  if (!topic) {
+    logger.info("FCM topic send skipped: empty topic", {
+      type: data && data.type ? String(data.type) : "",
+      title,
+    });
+    return null;
+  }
+
+  logger.info("FCM topic send attempt", {
+    topic,
+    type: data && data.type ? String(data.type) : "",
+    title,
+  });
+
+  try {
+    const response = await admin.messaging().send({
+      topic,
+      notification: {title, body},
+      data: buildDataPayload(data),
+    });
+
+    logger.info("FCM topic send completed", {
+      topic,
+      messageId: response,
+    });
+    return response;
+  } catch (error) {
+    logger.error("FCM topic send error", {
+      topic,
+      code: error && error.code ? error.code : "unknown",
+      message: error && error.message ? error.message : String(error),
+      type: data && data.type ? String(data.type) : "",
+      title,
+    });
+    throw error;
+  }
+}
+
+/**
+ * Ensures FCM data payload values are strings.
+ * @param {Object<string, any>} data
+ * @return {Object<string, string>}
+ */
+function buildDataPayload(data) {
+  const payload = {};
+  if (!data) return payload;
+
+  Object.keys(data).forEach((key) => {
+    const value = data[key];
+    if (value === null || value === undefined) {
+      payload[key] = "";
+    } else {
+      payload[key] = String(value);
+    }
+  });
+
+  return payload;
+}
+
+/**
+ * Normalizes ward IDs for topic naming.
+ * @param {string} wardId
+ * @return {string}
+ */
+function normalizeWardId(wardId) {
+  return String(wardId || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+}
+
+/**
+ * Builds a ward topic for a role group.
+ * @param {string} wardId
+ * @param {string} group
+ * @return {string|null}
+ */
+function buildWardTopic(wardId, group) {
+  const normalized = normalizeWardId(wardId);
+  if (!normalized) return null;
+  return `ward_${normalized}_${group}`;
+}
+
+/**
+ * Checks if a status field indicates a leak.
+ * @param {string} status
+ * @return {boolean}
+ */
+function isLeakStatus(status) {
+  if (!status) return false;
+  return String(status).toLowerCase().indexOf("leak") >= 0;
+}
+
+/**
+ * Fetches tokens for a specific user ID.
+ * @param {string} userId
+ * @return {Promise<string[]>}
+ */
+async function getUserTokens(userId) {
+  if (!userId) return [];
+  const doc = await db.collection("users").doc(userId).get();
+  if (!doc.exists) return [];
+  const data = doc.data() || {};
+  const tokens = data.fcmTokens;
+  if (!Array.isArray(tokens)) return [];
+  return tokens.filter((token) => typeof token === "string" && token.length > 0);
+}
+
+// ======================================================================
+// === NOTIFICATION TRIGGERS (FIRESTORE - v2) ============================
+// ======================================================================
+exports.notifyCashSettlementApproved = onDocumentUpdated(
+    "cash_collections/{collectionId}",
+    async (event) => {
+      const before = event.data && event.data.before ? event.data.before.data() : {};
+      const after = event.data && event.data.after ? event.data.after.data() : {};
+
+      if (!before || !after) return null;
+
+      if (before.status === "SETTLED" || after.status !== "SETTLED") {
+        return null;
+      }
+
+      const supervisorId = after.supervisorId;
+      if (!supervisorId) return null;
+
+      const tokens = await getUserTokens(supervisorId);
+      const amountLabel = (typeof after.amount === "number") ? after.amount.toFixed(2) : null;
+
+      return sendMulticast(
+          tokens,
+          NOTIFICATION_TITLES.cashSettlement,
+          amountLabel ?
+            `Your cash settlement of Rs ${amountLabel} was approved.` :
+            "Your cash settlement was approved.",
+          {
+            type: "cash_settlement",
+            collectionId: String(event.params.collectionId || ""),
+            supervisorId: String(supervisorId),
+          },
+      );
+    },
+);
+
+exports.notifyComplaintCreated = onDocumentCreated(
+    "complaints/{complaintId}",
+    async (event) => {
+      const data = event.data ? event.data.data() : null;
+      if (!data) return null;
+
+      const wardId = data.wardId || "";
+      const type = data.type || "Complaint";
+      const topic = buildWardTopic(wardId, "supervisors");
+
+      return sendToTopic(
+          topic,
+          NOTIFICATION_TITLES.complaint,
+          `Ward ${wardId}: ${type}`,
+          {
+            type: "complaint",
+            complaintId: String(event.params.complaintId || ""),
+            wardId: String(wardId),
+            userId: data.userId ? String(data.userId) : "",
+          },
+      );
+    },
+);
+
+exports.notifyComplaintStatusUpdated = onDocumentUpdated(
+    "complaints/{complaintId}",
+    async (event) => {
+      const before = event.data && event.data.before ? event.data.before.data() : {};
+      const after = event.data && event.data.after ? event.data.after.data() : {};
+
+      const beforeStatus = before.status || "";
+      const afterStatus = after.status || "";
+      if (!afterStatus || beforeStatus === afterStatus) return null;
+
+      const userId = after.userId;
+      if (!userId) return null;
+
+      const tokens = await getUserTokens(userId);
+      return sendMulticast(
+          tokens,
+          NOTIFICATION_TITLES.complaintStatus,
+          `Your complaint is now ${afterStatus}.`,
+          {
+            type: "complaint_status",
+            complaintId: String(event.params.complaintId || ""),
+            status: String(afterStatus),
+          },
+      );
+    },
+);
+
+exports.notifyConnectionRequestCreated = onDocumentCreated(
+    "connection_requests/{requestId}",
+    async (event) => {
+      const data = event.data ? event.data.data() : null;
+      if (!data) return null;
+
+      return sendToTopic(
+          ADMIN_TOPIC,
+          NOTIFICATION_TITLES.connectionRequested,
+          "A new connection request was submitted.",
+          {
+            type: "connection_request",
+            requestId: String(event.params.requestId || ""),
+            userId: data.userId ? String(data.userId) : "",
+          },
+      );
+    },
+);
+
+exports.notifyConnectionApproved = onDocumentUpdated(
+    "connection_requests/{requestId}",
+    async (event) => {
+      const before = event.data && event.data.before ? event.data.before.data() : {};
+      const after = event.data && event.data.after ? event.data.after.data() : {};
+
+      const beforeStatus = before.currentStatus || "";
+      const afterStatus = after.currentStatus || "";
+      if (beforeStatus === "Approved" || afterStatus !== "Approved") return null;
+
+      const userId = after.userId;
+      if (!userId) return null;
+
+      const tokens = await getUserTokens(userId);
+      return sendMulticast(
+          tokens,
+          NOTIFICATION_TITLES.connectionApproved,
+          "Your water connection request has been approved.",
+          {
+            type: "connection_approved",
+            requestId: String(event.params.requestId || ""),
+          },
+      );
+    },
+);
+
+exports.notifyBillingInvoiceCreated = onDocumentCreated(
+    "users/{userId}/billingHistory/{billId}",
+    async (event) => {
+      const data = event.data ? event.data.data() : null;
+      if (!data) return null;
+
+      if (data.status && data.status !== "Due") return null;
+
+      const userId = String(event.params.userId || "");
+      if (!userId) return null;
+
+      const tokens = await getUserTokens(userId);
+      const amountLabel = (typeof data.amount === "number") ? data.amount.toFixed(2) : null;
+
+      return sendMulticast(
+          tokens,
+          NOTIFICATION_TITLES.billingReminder,
+          amountLabel ?
+            `Your new bill of Rs ${amountLabel} is ready.` :
+            "Your new water bill is ready.",
+          {
+            type: "billing_reminder",
+            billId: String(event.params.billId || ""),
+          },
+      );
+    },
+);
+
+exports.notifyWardAnnouncement = onDocumentCreated(
+    "announcements/{announcementId}",
+    async (event) => {
+      const data = event.data ? event.data.data() : null;
+      if (!data) return null;
+
+      const wardId = data.wardId || "";
+      if (!wardId) return null;
+
+      const topic = buildWardTopic(wardId, "citizens");
+      const title = data.title || NOTIFICATION_TITLES.wardAnnouncement;
+      const message = data.message || "New ward announcement.";
+
+      return sendToTopic(
+          topic,
+          title,
+          message,
+          {
+            type: "ward_announcement",
+            announcementId: String(event.params.announcementId || ""),
+            wardId: String(wardId),
+          },
+      );
+    },
+);
+
+exports.notifyLeakStatusDetected = onDocumentUpdated(
+    "pipeline_nodes/{nodeId}",
+    async (event) => {
+      const before = event.data && event.data.before ? event.data.before.data() : {};
+      const after = event.data && event.data.after ? event.data.after.data() : {};
+
+      const beforeLeak = before.leakStatus === true || before.leakDetected === true || before.isLeak === true;
+      const afterLeak = after.leakStatus === true || after.leakDetected === true || after.isLeak === true;
+      const beforeStatus = before.status || "";
+      const afterStatus = after.status || "";
+
+      const becameLeak = (!beforeLeak && afterLeak) ||
+        (!isLeakStatus(beforeStatus) && isLeakStatus(afterStatus));
+
+      if (!becameLeak) return null;
+
+      const wardId = after.wardId || "";
+      const topic = buildWardTopic(wardId, "supervisors");
+      if (!topic) return null;
+
+      return sendToTopic(
+          topic,
+          NOTIFICATION_TITLES.leakAlert,
+          `Leak detected in Ward ${wardId}.`,
+          {
+            type: "leak_alert",
+            wardId: String(wardId),
+            nodeId: String(event.params.nodeId || ""),
+          },
+      );
+    },
+);
+
+exports.notifyGlobalInfrastructureFailure = onDocumentUpdated(
+    "pipeline_nodes/{nodeId}",
+    async (event) => {
+      const before = event.data && event.data.before ? event.data.before.data() : {};
+      const after = event.data && event.data.after ? event.data.after.data() : {};
+
+      const beforeStatus = before.status || "";
+      const afterStatus = after.status || "";
+
+      if (beforeStatus === "Critical" || afterStatus !== "Critical") return null;
+
+      const cutoff = new Date(Date.now() - (GLOBAL_INFRA_WINDOW_MINUTES * 60 * 1000));
+      const snapshot = await db.collection("pipeline_nodes")
+          .where("status", "==", "Critical")
+          .where("lastUpdated", ">=", cutoff)
+          .get();
+
+      if (snapshot.size < GLOBAL_INFRA_THRESHOLD) return null;
+
+      return sendToTopic(
+          ADMIN_TOPIC,
+          NOTIFICATION_TITLES.globalInfra,
+          "Multiple wards report critical pressure drops.",
+          {
+            type: "global_infra",
+            affectedCount: String(snapshot.size),
+          },
+      );
+    },
+);
+
+exports.notifyTankLevelThreshold = onDocumentUpdated(
+    "water_tanks/{tankId}",
+    async (event) => {
+      const before = event.data && event.data.before ? event.data.before.data() : {};
+      const after = event.data && event.data.after ? event.data.after.data() : {};
+
+      const beforeLevel = Number(before.level);
+      const afterLevel = Number(after.level);
+      if (!Number.isFinite(afterLevel)) return null;
+
+      const wasLow = Number.isFinite(beforeLevel) && beforeLevel < TANK_LEVEL_LOW_THRESHOLD;
+      const isLow = afterLevel < TANK_LEVEL_LOW_THRESHOLD;
+      const wasHigh = Number.isFinite(beforeLevel) && beforeLevel >= TANK_LEVEL_HIGH_THRESHOLD;
+      const isHigh = afterLevel >= TANK_LEVEL_HIGH_THRESHOLD;
+
+      if ((wasLow && isLow) || (wasHigh && isHigh) || (!isLow && !isHigh)) {
+        return null;
+      }
+
+      const wardId = String(event.params.tankId || "");
+      const topic = buildWardTopic(wardId, "supervisors");
+      if (!topic) return null;
+
+      if (isLow) {
+        return sendToTopic(
+            topic,
+            NOTIFICATION_TITLES.tankLevelLow,
+            `Water level is at ${afterLevel}%. Risk of dry running.`,
+            {
+              type: "tank_level_low",
+              wardId,
+              level: String(afterLevel),
+            },
+        );
+      }
+
+      return sendToTopic(
+          topic,
+          NOTIFICATION_TITLES.tankLevelHigh,
+          `Water level has reached ${afterLevel}%. Prepare to turn off the motor.`,
+          {
+            type: "tank_level_high",
+            wardId,
+            level: String(afterLevel),
+          },
+      );
+    },
+);
 
 // --- Prediction Function Helpers ---
 const ConsumptionCategory = {
@@ -100,7 +604,7 @@ function runNaiveBayes(trainingData, predictionPoint, logger) {
   }
 
   const calculatedStats = {};
-  for (const category in categoryStats) {
+  Object.keys(categoryStats).forEach((category) => {
     const [sumC, sumM, sumSqC, sumSqM, count] = categoryStats[category];
     const meanC = sumC / count;
     const meanM = sumM / count;
@@ -114,7 +618,7 @@ function runNaiveBayes(trainingData, predictionPoint, logger) {
       varianceMonth: varM,
       prior: count / n, // P(Category)
     };
-  }
+  });
   logger.debug("Naive Bayes stats calculated:", calculatedStats);
 
   // 2. Calculate Gaussian Probability Density Function
@@ -127,7 +631,7 @@ function runNaiveBayes(trainingData, predictionPoint, logger) {
   let bestCategory = -1;
   let maxProbability = -Infinity;
 
-  for (const category in calculatedStats) {
+  Object.keys(calculatedStats).forEach((category) => {
     const stats = calculatedStats[category];
     // P(Consumption | Category)
     const probConsumption = gaussianPDF(
@@ -145,7 +649,7 @@ function runNaiveBayes(trainingData, predictionPoint, logger) {
       maxProbability = posterior;
       bestCategory = parseInt(category, 10);
     }
-  }
+  });
 
   logger.info(`Naive Bayes Prediction result index: ${bestCategory}`);
   return bestCategory;

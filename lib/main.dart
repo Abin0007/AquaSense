@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
 import 'firebase_options.dart';
+import 'package:aquasense/services/notifications/push_notification_service.dart';
 
 // Screens
 import 'package:aquasense/screens/auth/login_screen.dart';
@@ -30,11 +32,27 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  await PushNotificationService.instance.init();
+
+  final currentUser = FirebaseAuth.instance.currentUser;
+  if (currentUser != null) {
+    await PushNotificationService.instance
+        .registerDeviceTokenForUser(currentUser);
+  }
+
   // Activate Firebase App Check
   await FirebaseAppCheck.instance.activate(
     androidProvider: kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
     appleProvider: AppleProvider.appAttest,
-    webProvider: ReCaptchaV3Provider('6LdPD8gAAAAAKUNp4zbCD1m2S1dXCtZwKow2mPul'),
+    webProvider: ReCaptchaV3Provider('6Le6gI4sAAAAAHahy6qU6JmF6Ke8Ts9evI-7gqtd'),
   );
 
   runApp(const MyApp());
